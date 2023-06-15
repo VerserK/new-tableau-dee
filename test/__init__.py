@@ -22,4 +22,4 @@ def main(mytimer: func.TimerRequest) -> None:
         logging.info('The timer is past due!')
 
     logging.info('Python timer trigger function ran at %s', utc_timestamp)
-    func_LineNotify('testtestsetset : '+ todatStr,'XVDGomv0AlT1oztR2Ntyad7nWUYvBWU7XLHPREQYm6e')
+    func_LineNotify('all 5 min : '+ todatStr,'XVDGomv0AlT1oztR2Ntyad7nWUYvBWU7XLHPREQYm6e')
