@@ -3,4 +3,10 @@
 # Manually managing azure-functions-worker may cause unexpected issues
 
 azure-functions
-requests==2.28.1
+google-api-python-client
+google-auth-httplib2
+google-auth-oauthlib
+pandas
+requests
+azure-storage-blob
+croniter
