@@ -12,7 +12,7 @@ def func_LineNotify(Message,LineToken):
     return response 
 
 today = datetime.datetime.today()
-todatStr = today.strftime('%Y-%m-%d')
+todatStr = today.strftime('%Y-%m-%d, %H:%M:%S')
 
 def main(mytimer: func.TimerRequest) -> None:
     utc_timestamp = datetime.datetime.utcnow().replace(
