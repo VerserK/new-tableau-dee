@@ -6,4 +6,4 @@ azure-functions
 requests==2.28.1
 pandas
 azure-storage-blob
-google-api-python-client
+croniter
