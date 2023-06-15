@@ -1,4 +1,5 @@
 import datetime
+from datetime import timedelta
 import logging
 import requests
 import azure.functions as func
@@ -18,7 +19,7 @@ def main(mytimer: func.TimerRequest) -> None:
     if mytimer.past_due:
         logging.info('The timer is past due!')
 
-    today = datetime.datetime.today()
+    today = datetime.datetime.today() + timedelta(hours=7)
     todatStr = today.strftime('%Y-%m-%d, %H:%M:%S')
 
     logging.info('Python timer trigger function ran at %s', utc_timestamp)
