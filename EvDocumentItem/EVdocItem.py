@@ -2,8 +2,8 @@ import pyodbc
 import pandas as pd
 import os
 import tempfile
-# from . import bulkinsert #on cloud
-from bulkinsert import c_bulk_insert
+from . import bulkinsert #on cloud
+# from bulkinsert import c_bulk_insert
 from azure.storage.blob import BlobServiceClient, ContentSettings
 import logging
 import numpy as np
@@ -49,6 +49,4 @@ def run():
     cursor.commit()
     df.to_csv(os.path.join(tempFilePath,nameFile), index=False, header=None)
     upload_csv(os.path.join(tempFilePath, nameFile))
-    c_bulk_insert(nameFile, 'skcdwhprdmi.public.bf8966ba22c0.database.windows.net,3342', 'E_Procurement', 'skcadminuser', 'DEE@skcdwhtocloud2022prd', table)
-
-run()
+    bulkinsert.c_bulk_insert(nameFile, 'skcdwhprdmi.public.bf8966ba22c0.database.windows.net,3342', 'E_Procurement', 'skcadminuser', 'DEE@skcdwhtocloud2022prd', table)
