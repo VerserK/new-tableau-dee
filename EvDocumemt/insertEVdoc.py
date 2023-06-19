@@ -6,6 +6,7 @@ from . import bulkinsert #on cloud
 # from bulkinsert import c_bulk_insert
 from azure.storage.blob import BlobServiceClient, ContentSettings
 import logging
+import numpy as np
 
 #SetUp Define AzureBlob
 sas_token = "sp=racwdli&st=2023-06-19T04:10:35Z&se=2030-12-31T12:10:35Z&spr=https&sv=2022-11-02&sr=c&sig=x8r7JytvrciGWodAcFtpEKYFcavz16Wbdhb6%2BuLYujk%3D"
@@ -42,8 +43,10 @@ def run():
     df = pd.read_sql_query(qry, con=mydb)
     df['PODocumentId'] = df['PODocumentId'].fillna(0)
     df['PODocumentId'] = df['PODocumentId'].astype('Int64')
+    df['PODocumentId'] = df['PODocumentId'].replace(0, None)
     df['POFlag'] = df['POFlag'].fillna(0)
     df['POFlag'] = df['POFlag'].replace(True,1)
+    df['POFlag'] = df['POFlag'].replace(0, None)
     cursor.execute('TRUNCATE TABLE ' + table)
     cursor.commit()
     df.to_csv(os.path.join(tempFilePath,nameFile), index=False, header=None)
