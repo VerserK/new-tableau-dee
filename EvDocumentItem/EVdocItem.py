@@ -2,10 +2,11 @@ import pyodbc
 import pandas as pd
 import os
 import tempfile
-from . import bulkinsert #on cloud
-# from bulkinsert import c_bulk_insert
+# from . import bulkinsert #on cloud
+from bulkinsert import c_bulk_insert
 from azure.storage.blob import BlobServiceClient, ContentSettings
 import logging
+import numpy as np
 
 #SetUp Define AzureBlob
 sas_token = "sp=racwdli&st=2023-06-19T04:10:35Z&se=2030-12-31T12:10:35Z&spr=https&sv=2022-11-02&sr=c&sig=x8r7JytvrciGWodAcFtpEKYFcavz16Wbdhb6%2BuLYujk%3D"
@@ -30,7 +31,7 @@ username = 'skcadminuser'
 password = 'DEE@skcdwhtocloud2022prd'
 driver = '{ODBC Driver 17 for SQL Server}'
 dsn = 'DRIVER='+driver+';SERVER='+server+';PORT=1433;DATABASE='+database+';UID='+username+';PWD='+ password
-table = 'EvDocument'
+table = 'EvDocumentItem'
 mydb = pyodbc.connect(dsn)
 cursor = mydb.cursor()
 
@@ -40,14 +41,14 @@ def run():
     nameFile = table + '.csv'
     qry = 'SELECT * FROM [172.29.196.79].[SKCeProcurement].[dbo].' + table
     df = pd.read_sql_query(qry, con=mydb)
-    df['PODocumentId'] = df['PODocumentId'].fillna(0)
-    df['PODocumentId'] = df['PODocumentId'].astype('Int64')
-    df['PODocumentId'] = df['PODocumentId'].replace(0, None)
-    df['POFlag'] = df['POFlag'].fillna(0)
-    df['POFlag'] = df['POFlag'].replace(True,1)
-    df['POFlag'] = df['POFlag'].replace(0, None)
+    df['RequireComment'] = df['RequireComment'].fillna(199)
+    df['RequireComment'] = df['RequireComment'].replace(False,0)
+    df['RequireComment'] = df['RequireComment'].replace(199, None)
+    print(df.dtypes)
     cursor.execute('TRUNCATE TABLE ' + table)
     cursor.commit()
     df.to_csv(os.path.join(tempFilePath,nameFile), index=False, header=None)
     upload_csv(os.path.join(tempFilePath, nameFile))
-    bulkinsert.c_bulk_insert(nameFile, 'skcdwhprdmi.public.bf8966ba22c0.database.windows.net,3342', 'E_Procurement', 'skcadminuser', 'DEE@skcdwhtocloud2022prd', table)
+    c_bulk_insert(nameFile, 'skcdwhprdmi.public.bf8966ba22c0.database.windows.net,3342', 'E_Procurement', 'skcadminuser', 'DEE@skcdwhtocloud2022prd', table)
+
+run()
