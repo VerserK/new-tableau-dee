@@ -9,5 +9,4 @@ azure-storage-blob
 croniter
 google-auth==2.13.0
 google-api-python-client==1.7.11
-tempfile
 pyodbc

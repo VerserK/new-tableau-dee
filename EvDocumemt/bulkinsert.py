@@ -1,4 +1,5 @@
 import pyodbc
+import logging
 
 class c_bulk_insert:
     def __init__(self, csv_file_nm, sql_server_nm, db_nm, username, password, db_table_nm):
@@ -24,5 +25,5 @@ class c_bulk_insert:
         #     cursor.execute(qry % '65001')
         cursor.execute(qry)
         conn.commit()
-        print("Bulk Insert Complete")
+        logging.info("Bulk Insert Complete")
         cursor.close

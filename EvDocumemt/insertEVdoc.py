@@ -5,6 +5,7 @@ import tempfile
 from . import bulkinsert #on cloud
 # from bulkinsert import c_bulk_insert
 from azure.storage.blob import BlobServiceClient, ContentSettings
+import logging
 
 #SetUp Define AzureBlob
 sas_token = "sp=racwdli&st=2023-06-19T04:10:35Z&se=2030-12-31T12:10:35Z&spr=https&sv=2022-11-02&sr=c&sig=x8r7JytvrciGWodAcFtpEKYFcavz16Wbdhb6%2BuLYujk%3D"
@@ -17,10 +18,10 @@ def upload_csv(local_file_name):
     target_file_name = os.path.basename(local_file_name)
     blob_client = container_client.get_blob_client(target_file_name)
     with open(local_file_name, "rb") as data:
-        print("Upload Start")
+        logging.info("Upload Start")
         content_settings = ContentSettings(content_type='text/plain')
         blob_client.upload_blob(data, overwrite=True, content_settings=content_settings)
-        print("Upload Done")
+        logging.info("Upload Done")
 
 #configure sql server
 server = 'skcdwhprdmi.public.bf8966ba22c0.database.windows.net,3342'
