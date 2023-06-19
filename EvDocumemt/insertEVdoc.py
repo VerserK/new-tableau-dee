@@ -35,9 +35,9 @@ cursor = mydb.cursor()
 
 #PATH
 tempFilePath = tempfile.gettempdir()
-
-qry = 'SELECT * FROM [172.29.196.79].[SKCeProcurement].[dbo].[EvDocument]'
-df = pd.read_sql_query(qry, con=mydb)
-df.to_csv(os.path.join(tempFilePath,'EvDocument.csv'),index=False, header=None)
-upload_csv(os.path.join(tempFilePath, "EvDocument.csv"))
-bulkinsert.c_bulk_insert('EvDocument.csv', 'skcdwhprdmi.public.bf8966ba22c0.database.windows.net,3342', 'E_Procurement', 'skcadminuser', 'DEE@skcdwhtocloud2022prd', 'EvDocument')
+def run():
+    qry = 'SELECT * FROM [172.29.196.79].[SKCeProcurement].[dbo].[EvDocument]'
+    df = pd.read_sql_query(qry, con=mydb)
+    df.to_csv(os.path.join(tempFilePath,'EvDocument.csv'),index=False, header=None)
+    upload_csv(os.path.join(tempFilePath, "EvDocument.csv"))
+    bulkinsert.c_bulk_insert('EvDocument.csv', 'skcdwhprdmi.public.bf8966ba22c0.database.windows.net,3342', 'E_Procurement', 'skcadminuser', 'DEE@skcdwhtocloud2022prd', 'EvDocument')
