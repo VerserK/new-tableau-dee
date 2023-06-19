@@ -16,7 +16,7 @@ class c_bulk_insert:
         cursor = conn.cursor()
         # Insert the data from the CSV file into the database table.
         # Assemble the BULK INSERT query. Be sure to skip the header row by specifying FIRSTROW = 2.
-        qry = "BULK INSERT " + db_table_nm + " FROM '" + csv_file_nm + "' WITH (DATA_SOURCE = 'EprocumentCredential', FIELDTERMINATOR =',', FORMAT = 'CSV', DATAFILETYPE ='char', ROWTERMINATOR = '0x0a', CODEPAGE = '65001')"
+        qry = "BULK INSERT " + db_table_nm + " FROM '" + csv_file_nm + "' WITH (DATA_SOURCE = 'eprocurement', FIELDTERMINATOR =',', FORMAT = 'CSV', DATAFILETYPE ='char', ROWTERMINATOR = '0x0a', CODEPAGE = '65001')"
         # Execute the query
         # cursor = conn.cursor()
         # if encoding == 'cp874':
