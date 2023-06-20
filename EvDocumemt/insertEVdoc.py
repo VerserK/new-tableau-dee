@@ -23,20 +23,21 @@ def upload_csv(local_file_name):
         blob_client.upload_blob(data, overwrite=True, content_settings=content_settings)
         logging.info("Upload Done")
 
-#configure sql server
-server = 'skcdwhprdmi.public.bf8966ba22c0.database.windows.net,3342'
-database =  'E_Procurement'
-username = 'skcadminuser'
-password = 'DEE@skcdwhtocloud2022prd'
-driver = '{ODBC Driver 17 for SQL Server}'
-dsn = 'DRIVER='+driver+';SERVER='+server+';PORT=1433;DATABASE='+database+';UID='+username+';PWD='+ password
-table = 'EvDocument'
-mydb = pyodbc.connect(dsn)
-cursor = mydb.cursor()
-
-#PATH
-tempFilePath = tempfile.gettempdir()
 def run():
+    #configure sql server
+    server = 'skcdwhprdmi.public.bf8966ba22c0.database.windows.net,3342'
+    database =  'E_Procurement'
+    username = 'skcadminuser'
+    password = 'DEE@skcdwhtocloud2022prd'
+    driver = '{ODBC Driver 17 for SQL Server}'
+    dsn = 'DRIVER='+driver+';SERVER='+server+';PORT=1433;DATABASE='+database+';UID='+username+';PWD='+ password
+    table = 'EvDocument'
+    mydb = pyodbc.connect(dsn)
+    cursor = mydb.cursor()
+
+    #PATH
+    tempFilePath = tempfile.gettempdir()
+
     nameFile = table + '.csv'
     qry = 'SELECT * FROM [172.29.196.79].[SKCeProcurement].[dbo].' + table
     df = pd.read_sql_query(qry, con=mydb)
