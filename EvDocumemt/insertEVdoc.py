@@ -1,4 +1,6 @@
-import pyodbc
+import sqlalchemy as sa
+from sqlalchemy.sql import text as sa_text
+import urllib
 import pandas as pd
 import os
 import tempfile
@@ -32,23 +34,22 @@ def run():
     driver = '{ODBC Driver 17 for SQL Server}'
     dsn = 'DRIVER='+driver+';SERVER='+server+';PORT=1433;DATABASE='+database+';UID='+username+';PWD='+ password
     table = 'EvDocument'
-    mydb = pyodbc.connect(dsn)
-    cursor = mydb.cursor()
+    params = urllib.parse.quote_plus(dsn)
+    engine = sa.create_engine('mssql+pyodbc:///?odbc_connect=%s' % params)
 
     #PATH
     tempFilePath = tempfile.gettempdir()
 
     nameFile = table + '.csv'
     qry = 'SELECT * FROM [172.29.196.79].[SKCeProcurement].[dbo].' + table
-    df = pd.read_sql_query(qry, con=mydb)
+    df = pd.read_sql_query(qry, con=engine)
     df['PODocumentId'] = df['PODocumentId'].fillna(0)
     df['PODocumentId'] = df['PODocumentId'].astype('Int64')
     df['PODocumentId'] = df['PODocumentId'].replace(0, None)
     df['POFlag'] = df['POFlag'].fillna(0)
     df['POFlag'] = df['POFlag'].replace(True,1)
     df['POFlag'] = df['POFlag'].replace(0, None)
-    cursor.execute('TRUNCATE TABLE ' + table)
-    cursor.commit()
+    engine.execute(sa_text(('TRUNCATE TABLE ') + table).execution_options(autocommit=True))
     df.to_csv(os.path.join(tempFilePath,nameFile), index=False, header=None)
     upload_csv(os.path.join(tempFilePath, nameFile))
     bulkinsert.c_bulk_insert(nameFile, 'skcdwhprdmi.public.bf8966ba22c0.database.windows.net,3342', 'E_Procurement', 'skcadminuser', 'DEE@skcdwhtocloud2022prd', table)

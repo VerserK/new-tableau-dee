@@ -1,11 +1,11 @@
-import sqlalchemy as sa
-from sqlalchemy.sql import text as sa_text
-import urllib
 import pandas as pd
 import os
 import tempfile
-from . import bulkinsert #on cloud
-# from bulkinsert import c_bulk_insert
+import sqlalchemy as sa
+from sqlalchemy.sql import text as sa_text
+import urllib
+# from . import bulkinsert #on cloud
+from bulkinsert import c_bulk_insert
 from azure.storage.blob import BlobServiceClient, ContentSettings
 import logging
 
@@ -33,7 +33,7 @@ def run():
     password = 'DEE@skcdwhtocloud2022prd'
     driver = '{ODBC Driver 17 for SQL Server}'
     dsn = 'DRIVER='+driver+';SERVER='+server+';PORT=1433;DATABASE='+database+';UID='+username+';PWD='+ password
-    table = 'PoDocumentCondition'
+    table = 'PrDocumentItem'
     params = urllib.parse.quote_plus(dsn)
     engine = sa.create_engine('mssql+pyodbc:///?odbc_connect=%s' % params)
 
@@ -43,15 +43,20 @@ def run():
     nameFile = table + '.csv'
     qry = 'SELECT * FROM [172.29.196.79].[SKCeProcurement].[dbo].' + table
     df = pd.read_sql_query(qry, con=engine)
-    df['DocumentId'] = df['DocumentId'].fillna(993)
-    df['DocumentId'] = df['DocumentId'].astype(int)
-    df['DocumentId'] = df['DocumentId'].replace(993,None)
-    df['ItemId'] = df['ItemId'].fillna(993)
-    df['ItemId'] = df['ItemId'].astype(int)
-    df['ItemId'] = df['ItemId'].replace(993,None)
-    df['ConvertingToBaseUnitFactor'] = df['ConvertingToBaseUnitFactor'].astype(int)
-    df = df[df.columns[:-1]]
+    df['PRClosed'] = df['PRClosed'].replace(True,1)
+    df['PRClosed'] = df['PRClosed'].replace(False,0)
+    df['PRFixed'] = df['PRFixed'].replace(True,1)
+    df['PRFixed'] = df['PRFixed'].replace(False,0)
+    df['InvoiceReceipt'] = df['InvoiceReceipt'].replace(True,1)
+    df['InvoiceReceipt'] = df['InvoiceReceipt'].replace(False,0)
+    df['GoodsReceipt'] = df['GoodsReceipt'].replace(True,1)
+    df['GoodsReceipt'] = df['GoodsReceipt'].replace(False,0)
+    df['GoodsReceiptNonValuated'] = df['GoodsReceiptNonValuated'].replace(True,1)
+    df['GoodsReceiptNonValuated'] = df['GoodsReceiptNonValuated'].replace(False,0)
+    df['IsCancel'] = df['IsCancel'].replace(True,1)
+    df['IsCancel'] = df['IsCancel'].replace(False,0)
+    print(df.dtypes)
     engine.execute(sa_text(('TRUNCATE TABLE ') + table).execution_options(autocommit=True))
     df.to_csv(os.path.join(tempFilePath,nameFile), index=False, encoding='utf-8', header=None)
     upload_csv(os.path.join(tempFilePath, nameFile))
-    bulkinsert.c_bulk_insert(nameFile, 'skcdwhprdmi.public.bf8966ba22c0.database.windows.net,3342', 'E_Procurement', 'skcadminuser', 'DEE@skcdwhtocloud2022prd', table)
+    c_bulk_insert(nameFile, 'skcdwhprdmi.public.bf8966ba22c0.database.windows.net,3342', 'E_Procurement', 'skcadminuser', 'DEE@skcdwhtocloud2022prd', table)

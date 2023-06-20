@@ -1,4 +1,6 @@
-import pyodbc
+import sqlalchemy as sa
+from sqlalchemy.sql import text as sa_text
+import urllib
 import pandas as pd
 import os
 import tempfile
@@ -32,15 +34,15 @@ def run():
     driver = '{ODBC Driver 17 for SQL Server}'
     dsn = 'DRIVER='+driver+';SERVER='+server+';PORT=1433;DATABASE='+database+';UID='+username+';PWD='+ password
     table = 'GrDocumentItem'
-    mydb = pyodbc.connect(dsn)
-    cursor = mydb.cursor()
+    params = urllib.parse.quote_plus(dsn)
+    engine = sa.create_engine('mssql+pyodbc:///?odbc_connect=%s' % params)
 
     #PATH
     tempFilePath = tempfile.gettempdir()
 
     nameFile = table + '.csv'
     qry = 'SELECT * FROM [172.29.196.79].[SKCeProcurement].[dbo].' + table
-    df = pd.read_sql_query(qry, con=mydb)
+    df = pd.read_sql_query(qry, con=engine)
     df['DeliveryCompleted'] = df['DeliveryCompleted'].replace(True,1)
     df['DeliveryCompleted'] = df['DeliveryCompleted'].replace(False,0)
     df['IsCancel'] = df['IsCancel'].replace(True,1)
@@ -49,9 +51,7 @@ def run():
     df['CancelMaterialItem'] = df['CancelMaterialItem'].astype(int)
     df['CancelMaterialItem'] = df['CancelMaterialItem'].replace(993,None)
     df = df[df.columns[:-1]]
-    print(df.dtypes)
-    cursor.execute('TRUNCATE TABLE ' + table)
-    cursor.commit()
+    engine.execute(sa_text(('TRUNCATE TABLE ') + table).execution_options(autocommit=True))
     df.to_csv(os.path.join(tempFilePath,nameFile), index=False, encoding='utf-8', header=None)
     upload_csv(os.path.join(tempFilePath, nameFile))
     bulkinsert.c_bulk_insert(nameFile, 'skcdwhprdmi.public.bf8966ba22c0.database.windows.net,3342', 'E_Procurement', 'skcadminuser', 'DEE@skcdwhtocloud2022prd', table)
