@@ -36,6 +36,7 @@ def run():
     table = 'EvDocument'
     params = urllib.parse.quote_plus(dsn)
     engine = sa.create_engine('mssql+pyodbc:///?odbc_connect=%s' % params)
+    connection = engine.connect()
 
     #PATH
     tempFilePath = tempfile.gettempdir()
@@ -49,7 +50,7 @@ def run():
     df['POFlag'] = df['POFlag'].fillna(0)
     df['POFlag'] = df['POFlag'].replace(True,1)
     df['POFlag'] = df['POFlag'].replace(0, None)
-    engine.execute(sa_text(('TRUNCATE TABLE ') + table).execution_options(autocommit=True))
+    connection.execute(sa_text(('TRUNCATE TABLE ') + table).execution_options(autocommit=True))
     df.to_csv(os.path.join(tempFilePath,nameFile), index=False, header=None)
     upload_csv(os.path.join(tempFilePath, nameFile))
     bulkinsert.c_bulk_insert(nameFile, 'skcdwhprdmi.public.bf8966ba22c0.database.windows.net,3342', 'E_Procurement', 'skcadminuser', 'DEE@skcdwhtocloud2022prd', table)
