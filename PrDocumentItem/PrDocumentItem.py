@@ -4,8 +4,8 @@ import tempfile
 import sqlalchemy as sa
 from sqlalchemy.sql import text as sa_text
 import urllib
-# from . import bulkinsert #on cloud
-from bulkinsert import c_bulk_insert
+from . import bulkinsert #on cloud
+# from bulkinsert import c_bulk_insert
 from azure.storage.blob import BlobServiceClient, ContentSettings
 import logging
 
@@ -36,6 +36,7 @@ def run():
     table = 'PrDocumentItem'
     params = urllib.parse.quote_plus(dsn)
     engine = sa.create_engine('mssql+pyodbc:///?odbc_connect=%s' % params)
+    connection = engine.connect()
 
     #PATH
     tempFilePath = tempfile.gettempdir()
@@ -55,8 +56,14 @@ def run():
     df['GoodsReceiptNonValuated'] = df['GoodsReceiptNonValuated'].replace(False,0)
     df['IsCancel'] = df['IsCancel'].replace(True,1)
     df['IsCancel'] = df['IsCancel'].replace(False,0)
-    print(df.dtypes)
-    engine.execute(sa_text(('TRUNCATE TABLE ') + table).execution_options(autocommit=True))
+    df['PlannedDeliveryTime'] = df['PlannedDeliveryTime'].fillna(9933)
+    df['PlannedDeliveryTime'] = df['PlannedDeliveryTime'].astype(int)
+    df['PlannedDeliveryTime'] = df['PlannedDeliveryTime'].replace(9933,None)
+    df['GRProcessingTime'] = df['GRProcessingTime'].fillna(9933)
+    df['GRProcessingTime'] = df['GRProcessingTime'].astype(int)
+    df['GRProcessingTime'] = df['GRProcessingTime'].replace(9933,None)
+    delete = 'TRUNCATE TABLE ' + table
+    connection.execute(sa_text(delete).execution_options(autocommit=True))
     df.to_csv(os.path.join(tempFilePath,nameFile), index=False, encoding='utf-8', header=None)
     upload_csv(os.path.join(tempFilePath, nameFile))
-    c_bulk_insert(nameFile, 'skcdwhprdmi.public.bf8966ba22c0.database.windows.net,3342', 'E_Procurement', 'skcadminuser', 'DEE@skcdwhtocloud2022prd', table)
+    bulkinsert.c_bulk_insert(nameFile, server, database, username, password, table)

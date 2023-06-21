@@ -1,14 +1,13 @@
-import sqlalchemy as sa
-from sqlalchemy.sql import text as sa_text
-import urllib
 import pandas as pd
 import os
 import tempfile
+import sqlalchemy as sa
+from sqlalchemy.sql import text as sa_text
+import urllib
 from . import bulkinsert #on cloud
 # from bulkinsert import c_bulk_insert
 from azure.storage.blob import BlobServiceClient, ContentSettings
 import logging
-import numpy as np
 
 #SetUp Define AzureBlob
 sas_token = "sp=racwdli&st=2023-06-19T04:10:35Z&se=2030-12-31T12:10:35Z&spr=https&sv=2022-11-02&sr=c&sig=x8r7JytvrciGWodAcFtpEKYFcavz16Wbdhb6%2BuLYujk%3D"
@@ -34,7 +33,7 @@ def run():
     password = 'DEE@skcdwhtocloud2022prd'
     driver = '{ODBC Driver 17 for SQL Server}'
     dsn = 'DRIVER='+driver+';SERVER='+server+';PORT=1433;DATABASE='+database+';UID='+username+';PWD='+ password
-    table = 'EvDocumentItem'
+    table = 'PrDocumentItemAccountAssignment'
     params = urllib.parse.quote_plus(dsn)
     engine = sa.create_engine('mssql+pyodbc:///?odbc_connect=%s' % params)
     connection = engine.connect()
@@ -45,11 +44,9 @@ def run():
     nameFile = table + '.csv'
     qry = 'SELECT * FROM [172.29.196.79].[SKCeProcurement].[dbo].' + table
     df = pd.read_sql_query(qry, con=engine)
-    df['RequireComment'] = df['RequireComment'].fillna(199)
-    df['RequireComment'] = df['RequireComment'].replace(False,0)
-    df['RequireComment'] = df['RequireComment'].replace(199, None)
+    df = df[df.columns[:-1]]
     delete = 'TRUNCATE TABLE ' + table
     connection.execute(sa_text(delete).execution_options(autocommit=True))
-    df.to_csv(os.path.join(tempFilePath,nameFile), index=False, header=None)
+    df.to_csv(os.path.join(tempFilePath,nameFile), index=False, encoding='utf-8', header=None)
     upload_csv(os.path.join(tempFilePath, nameFile))
     bulkinsert.c_bulk_insert(nameFile, server, database, username, password, table)

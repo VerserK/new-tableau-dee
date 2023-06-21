@@ -43,14 +43,16 @@ def run():
 
     nameFile = table + '.csv'
     qry = 'SELECT * FROM [172.29.196.79].[SKCeProcurement].[dbo].' + table
-    df = pd.read_sql_query(qry, con=engine)
+    df = pd.read_sql_query(qry, con=connection)
     df['PODocumentId'] = df['PODocumentId'].fillna(0)
     df['PODocumentId'] = df['PODocumentId'].astype('Int64')
     df['PODocumentId'] = df['PODocumentId'].replace(0, None)
     df['POFlag'] = df['POFlag'].fillna(0)
     df['POFlag'] = df['POFlag'].replace(True,1)
     df['POFlag'] = df['POFlag'].replace(0, None)
-    connection.execute(sa_text(('TRUNCATE TABLE ') + table).execution_options(autocommit=True))
+    delete = 'TRUNCATE TABLE ' + table
+    connection.execute(sa_text(delete).execution_options(autocommit=True))
+    print('Delete!')
     df.to_csv(os.path.join(tempFilePath,nameFile), index=False, header=None)
     upload_csv(os.path.join(tempFilePath, nameFile))
     bulkinsert.c_bulk_insert(nameFile, server, database, username, password, table)

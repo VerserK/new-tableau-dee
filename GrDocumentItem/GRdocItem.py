@@ -36,6 +36,7 @@ def run():
     table = 'GrDocumentItem'
     params = urllib.parse.quote_plus(dsn)
     engine = sa.create_engine('mssql+pyodbc:///?odbc_connect=%s' % params)
+    connection = engine.connect()
 
     #PATH
     tempFilePath = tempfile.gettempdir()
@@ -51,7 +52,8 @@ def run():
     df['CancelMaterialItem'] = df['CancelMaterialItem'].astype(int)
     df['CancelMaterialItem'] = df['CancelMaterialItem'].replace(993,None)
     df = df[df.columns[:-1]]
-    engine.execute(sa_text(('TRUNCATE TABLE ') + table).execution_options(autocommit=True))
+    delete = 'TRUNCATE TABLE ' + table
+    connection.execute(sa_text(delete).execution_options(autocommit=True))
     df.to_csv(os.path.join(tempFilePath,nameFile), index=False, encoding='utf-8', header=None)
     upload_csv(os.path.join(tempFilePath, nameFile))
-    bulkinsert.c_bulk_insert(nameFile, 'skcdwhprdmi.public.bf8966ba22c0.database.windows.net,3342', 'E_Procurement', 'skcadminuser', 'DEE@skcdwhtocloud2022prd', table)
+    bulkinsert.c_bulk_insert(nameFile, server, database, username, password, table)
