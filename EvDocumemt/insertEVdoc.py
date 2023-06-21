@@ -27,7 +27,7 @@ def upload_csv(local_file_name):
 
 def run():
     #configure sql server
-    server = 'skcdwhprdmi.public.bf8966ba22c0.database.windows.net,3342'
+    server = 'skcdwhprdmi.siamkubota.co.th'
     database =  'E_Procurement'
     username = 'skcadminuser'
     password = 'DEE@skcdwhtocloud2022prd'
@@ -53,4 +53,4 @@ def run():
     connection.execute(sa_text(('TRUNCATE TABLE ') + table).execution_options(autocommit=True))
     df.to_csv(os.path.join(tempFilePath,nameFile), index=False, header=None)
     upload_csv(os.path.join(tempFilePath, nameFile))
-    bulkinsert.c_bulk_insert(nameFile, 'skcdwhprdmi.public.bf8966ba22c0.database.windows.net,3342', 'E_Procurement', 'skcadminuser', 'DEE@skcdwhtocloud2022prd', table)
+    bulkinsert.c_bulk_insert(nameFile, server, database, username, password, table)
