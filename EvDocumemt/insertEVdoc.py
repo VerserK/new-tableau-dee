@@ -37,6 +37,7 @@ def run():
     params = urllib.parse.quote_plus(dsn)
     engine = sa.create_engine('mssql+pyodbc:///?odbc_connect=%s' % params)
     connection = engine.connect()
+    trans = connection.begin()
 
     #PATH
     tempFilePath = tempfile.gettempdir()
@@ -51,7 +52,9 @@ def run():
     df['POFlag'] = df['POFlag'].replace(True,1)
     df['POFlag'] = df['POFlag'].replace(0, None)
     delete = 'TRUNCATE TABLE ' + table
-    connection.execute(sa_text(delete).execution_options(autocommit=True))
+    connection.execute(sa_text(delete))
+    trans.commit()
+    connection.close()
     print('Delete!')
     df.to_csv(os.path.join(tempFilePath,nameFile), index=False, header=None)
     upload_csv(os.path.join(tempFilePath, nameFile))
