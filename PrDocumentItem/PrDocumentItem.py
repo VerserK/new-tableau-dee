@@ -37,6 +37,7 @@ def run():
     params = urllib.parse.quote_plus(dsn)
     engine = sa.create_engine('mssql+pyodbc:///?odbc_connect=%s' % params)
     connection = engine.connect()
+    trans = connection.begin()
 
     #PATH
     tempFilePath = tempfile.gettempdir()
@@ -63,7 +64,9 @@ def run():
     df['GRProcessingTime'] = df['GRProcessingTime'].astype(int)
     df['GRProcessingTime'] = df['GRProcessingTime'].replace(9933,None)
     delete = 'TRUNCATE TABLE ' + table
-    connection.execute(sa_text(delete).execution_options(autocommit=True))
+    connection.execute(sa_text(delete))
+    trans.commit()
+    connection.close()
     df.to_csv(os.path.join(tempFilePath,nameFile), index=False, encoding='utf-8', header=None)
     upload_csv(os.path.join(tempFilePath, nameFile))
     bulkinsert.c_bulk_insert(nameFile, server, database, username, password, table)
