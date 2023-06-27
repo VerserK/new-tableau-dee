@@ -28,6 +28,7 @@ def upload_csv(local_file_name):
 
 def run():
     #configure sql server
+    logging.info('Start E-pro')
     server = 'skcdwhprdmi.siamkubota.co.th'
     database =  'E_Procurement'
     username = 'skcadminuser'
