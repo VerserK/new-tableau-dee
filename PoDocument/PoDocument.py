@@ -48,6 +48,7 @@ def run():
     nameFile = table + '.csv'
     qry = 'SELECT * FROM [172.29.196.79].[SKCeProcurement].[dbo].' + table
     df = pd.read_sql_query(qry, con=connection)
+    logging.info('Read Data to Dataframe')
     df['GRMessageIndicator'] = df['GRMessageIndicator'].replace(True,1)
     df['GRMessageIndicator'] = df['GRMessageIndicator'].replace(False,0)
     df['FixedExchangeRateIndicator'] = df['FixedExchangeRateIndicator'].replace(True,1)
@@ -56,10 +57,13 @@ def run():
     df['IsAutoPo'] = df['IsAutoPo'].replace(False,0)
     df['RequireSignedPO'] = df['RequireSignedPO'].replace(True,1)
     df['RequireSignedPO'] = df['RequireSignedPO'].replace(False,0)
+    logging.info('Prep Data Complate')
     delete = 'TRUNCATE TABLE ' + table
     connection.execute(sa_text(delete))
     trans.commit()
     connection.close()
+    logging.info('Delete Complate')
     df.to_csv(os.path.join(tempFilePath,nameFile), index=False, encoding='utf-8', header=None)
+    logging.info('Dataframe to CSV Complate')
     upload_csv(os.path.join(tempFilePath, nameFile))
     bulkinsert.c_bulk_insert(nameFile, server, database, username, password, table)
