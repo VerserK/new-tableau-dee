@@ -1,5 +1,6 @@
 import sqlalchemy as sa
 from sqlalchemy.sql import text as sa_text
+import pyodbc
 import urllib
 import pandas as pd
 import os
@@ -27,13 +28,15 @@ def upload_csv(local_file_name):
 
 def run():
     #configure sql server
-    server = 'skcdwhprdmi.public.bf8966ba22c0.database.windows.net,3342'
+    server = 'skcdwhprdmi.siamkubota.co.th'
     database =  'E_Procurement'
     username = 'skcadminuser'
     password = 'DEE@skcdwhtocloud2022prd'
     driver = '{ODBC Driver 17 for SQL Server}'
     dsn = 'DRIVER='+driver+';SERVER='+server+';PORT=1433;DATABASE='+database+';UID='+username+';PWD='+ password
     table = 'PoDocument'
+    conn = pyodbc.connect(dsn)
+    cursor = conn.cursor()
     params = urllib.parse.quote_plus(dsn)
     engine = sa.create_engine('mssql+pyodbc:///?odbc_connect=%s' % params)
     connection = engine.connect()
@@ -44,7 +47,7 @@ def run():
 
     nameFile = table + '.csv'
     qry = 'SELECT * FROM [172.29.196.79].[SKCeProcurement].[dbo].' + table
-    df = pd.read_sql_query(qry, con=engine)
+    df = pd.read_sql_query(qry, con=connection)
     df['GRMessageIndicator'] = df['GRMessageIndicator'].replace(True,1)
     df['GRMessageIndicator'] = df['GRMessageIndicator'].replace(False,0)
     df['FixedExchangeRateIndicator'] = df['FixedExchangeRateIndicator'].replace(True,1)
