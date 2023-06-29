@@ -9,6 +9,7 @@ from . import bulkinsert #on cloud
 # from bulkinsert import c_bulk_insert
 from azure.storage.blob import BlobServiceClient, ContentSettings
 import logging
+import time
 
 #SetUp Define AzureBlob
 sas_token = "sp=racwdli&st=2023-06-19T04:10:35Z&se=2030-12-31T12:10:35Z&spr=https&sv=2022-11-02&sr=c&sig=x8r7JytvrciGWodAcFtpEKYFcavz16Wbdhb6%2BuLYujk%3D"
@@ -29,6 +30,7 @@ def upload_csv(local_file_name):
 def run():
     #configure sql server
     logging.info('Start E-pro')
+    start_time = time.time()
     server = 'skcdwhprdmi.siamkubota.co.th'
     database =  'E_Procurement'
     username = 'skcadminuser'
@@ -38,17 +40,17 @@ def run():
     table = 'PoDocument'
     conn = pyodbc.connect(dsn)
     cursor = conn.cursor()
-    params = urllib.parse.quote_plus(dsn)
-    engine = sa.create_engine('mssql+pyodbc:///?odbc_connect=%s' % params)
-    connection = engine.connect()
-    trans = connection.begin()
+    # params = urllib.parse.quote_plus(dsn)
+    # engine = sa.create_engine('mssql+pyodbc:///?odbc_connect=%s' % params)
+    # connection = engine.connect()
+    # trans = connection.begin()
 
     #PATH
     tempFilePath = tempfile.gettempdir()
 
     nameFile = table + '.csv'
     qry = 'SELECT * FROM [172.29.196.79].[SKCeProcurement].[dbo].' + table
-    df = pd.read_sql_query(qry, con=connection)
+    df = pd.read_sql_query(qry, con=conn)
     logging.info('Read Data to Dataframe')
     df['GRMessageIndicator'] = df['GRMessageIndicator'].replace(True,1)
     df['GRMessageIndicator'] = df['GRMessageIndicator'].replace(False,0)
@@ -60,7 +62,7 @@ def run():
     df['RequireSignedPO'] = df['RequireSignedPO'].replace(False,0)
     logging.info('Prep Data Complate')
     delete = 'TRUNCATE TABLE ' + table
-    cursor.execute(sa_text(delete))
+    cursor.execute(delete)
     conn.commit()
     conn.close()
     logging.info('Delete Complate')
@@ -68,3 +70,4 @@ def run():
     logging.info('Dataframe to CSV Complate')
     upload_csv(os.path.join(tempFilePath, nameFile))
     bulkinsert.c_bulk_insert(nameFile, server, database, username, password, table)
+    print('end upload table : {:.1f}'.format(time.time() - start_time))

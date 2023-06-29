@@ -34,17 +34,19 @@ def run():
     driver = '{ODBC Driver 17 for SQL Server}'
     dsn = 'DRIVER='+driver+';SERVER='+server+';PORT=1433;DATABASE='+database+';UID='+username+';PWD='+ password
     table = 'GrDocumentItem'
-    params = urllib.parse.quote_plus(dsn)
-    engine = sa.create_engine('mssql+pyodbc:///?odbc_connect=%s' % params)
-    connection = engine.connect()
-    trans = connection.begin()
+    conn = pyodbc.connect(dsn)
+    cursor = conn.cursor()
+    # params = urllib.parse.quote_plus(dsn)
+    # engine = sa.create_engine('mssql+pyodbc:///?odbc_connect=%s' % params)
+    # connection = engine.connect()
+    # trans = connection.begin()
 
     #PATH
     tempFilePath = tempfile.gettempdir()
 
     nameFile = table + '.csv'
     qry = 'SELECT * FROM [172.29.196.79].[SKCeProcurement].[dbo].' + table
-    df = pd.read_sql_query(qry, con=engine)
+    df = pd.read_sql_query(qry, con=conn)
     df['DeliveryCompleted'] = df['DeliveryCompleted'].replace(True,1)
     df['DeliveryCompleted'] = df['DeliveryCompleted'].replace(False,0)
     df['IsCancel'] = df['IsCancel'].replace(True,1)
@@ -54,9 +56,9 @@ def run():
     df['CancelMaterialItem'] = df['CancelMaterialItem'].replace(993,None)
     df = df[df.columns[:-1]]
     delete = 'TRUNCATE TABLE ' + table
-    connection.execute(sa_text(delete))
-    trans.commit()
-    connection.close()
+    cursor.execute(delete)
+    conn.commit()
+    conn.close()
     df.to_csv(os.path.join(tempFilePath,nameFile), index=False, encoding='utf-8', header=None)
     upload_csv(os.path.join(tempFilePath, nameFile))
     bulkinsert.c_bulk_insert(nameFile, server, database, username, password, table)
