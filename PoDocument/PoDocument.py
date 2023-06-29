@@ -60,9 +60,9 @@ def run():
     df['RequireSignedPO'] = df['RequireSignedPO'].replace(False,0)
     logging.info('Prep Data Complate')
     delete = 'TRUNCATE TABLE ' + table
-    connection.execute(sa_text(delete))
-    trans.commit()
-    connection.close()
+    cursor.execute(sa_text(delete))
+    conn.commit()
+    conn.close()
     logging.info('Delete Complate')
     df.to_csv(os.path.join(tempFilePath,nameFile), index=False, encoding='utf-8', header=None)
     logging.info('Dataframe to CSV Complate')
