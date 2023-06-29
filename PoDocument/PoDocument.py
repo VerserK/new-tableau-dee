@@ -49,8 +49,8 @@ def run():
     tempFilePath = tempfile.gettempdir()
 
     nameFile = table + '.csv'
-    qry = 'SELECT * FROM [172.29.196.79].[SKCeProcurement].[dbo].' + table
-    df = pd.read_sql_query(qry, con=conn)
+    qry = 'SELECT * FROM [172.29.196.79].[SKCeProcurement].[dbo].[' + table + ']'
+    df = pd.read_sql(qry, con=conn)
     logging.info('Read Data to Dataframe')
     df['GRMessageIndicator'] = df['GRMessageIndicator'].replace(True,1)
     df['GRMessageIndicator'] = df['GRMessageIndicator'].replace(False,0)
