@@ -8,6 +8,7 @@ from . import bulkinsert #on cloud
 # from bulkinsert import c_bulk_insert
 from azure.storage.blob import BlobServiceClient, ContentSettings
 import logging
+import pyodbc
 
 #SetUp Define AzureBlob
 sas_token = "sp=racwdli&st=2023-06-19T04:10:35Z&se=2030-12-31T12:10:35Z&spr=https&sv=2022-11-02&sr=c&sig=x8r7JytvrciGWodAcFtpEKYFcavz16Wbdhb6%2BuLYujk%3D"
