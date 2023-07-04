@@ -71,10 +71,9 @@ def run():
     trans.commit()
     connection.close()
     logging.info('Delete Complate')
-    
+
     df.to_csv(os.path.join(tempFilePath,nameFile), index=False, encoding='utf-8', header=None)
     logging.info('Dataframe to CSV Complate')
     upload_csv(os.path.join(tempFilePath, nameFile))
     bulkinsert.c_bulk_insert(nameFile, server, database, username, password, table)
     print('end upload table : {:.1f}'.format(time.time() - start_time))
-run()
