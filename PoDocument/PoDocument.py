@@ -40,18 +40,22 @@ def run():
     table = 'PoDocument'
     conn = pyodbc.connect(dsn)
     cursor = conn.cursor()
-    # params = urllib.parse.quote_plus(dsn)
-    # engine = sa.create_engine('mssql+pyodbc:///?odbc_connect=%s' % params)
-    # connection = engine.connect()
-    # trans = connection.begin()
+    params = urllib.parse.quote_plus(dsn)
+    engine = sa.create_engine('mssql+pyodbc:///?odbc_connect=%s' % params)
+    connection = engine.connect()
+    trans = connection.begin()
 
     #PATH
     tempFilePath = tempfile.gettempdir()
-
     nameFile = table + '.csv'
-    qry = 'SELECT * FROM [172.29.196.79].[SKCeProcurement].[dbo].[' + table + ']'
-    df = pd.read_sql(qry, con=conn)
+    tmp = []
+    qry = 'SELECT * FROM [172.29.196.79].[SKCeProcurement].[dbo].' + table
+    for chunk in pd.read_sql_query(qry, con=engine,chunksize=10000):
+        print(chunk)
+        tmp.append(chunk)
+    df = pd.concat(tmp)
     logging.info('Read Data to Dataframe')
+
     df['GRMessageIndicator'] = df['GRMessageIndicator'].replace(True,1)
     df['GRMessageIndicator'] = df['GRMessageIndicator'].replace(False,0)
     df['FixedExchangeRateIndicator'] = df['FixedExchangeRateIndicator'].replace(True,1)
@@ -61,13 +65,16 @@ def run():
     df['RequireSignedPO'] = df['RequireSignedPO'].replace(True,1)
     df['RequireSignedPO'] = df['RequireSignedPO'].replace(False,0)
     logging.info('Prep Data Complate')
+
     delete = 'TRUNCATE TABLE ' + table
-    cursor.execute(delete)
-    conn.commit()
-    conn.close()
+    connection.execute(sa_text(delete))
+    trans.commit()
+    connection.close()
     logging.info('Delete Complate')
+    
     df.to_csv(os.path.join(tempFilePath,nameFile), index=False, encoding='utf-8', header=None)
     logging.info('Dataframe to CSV Complate')
     upload_csv(os.path.join(tempFilePath, nameFile))
     bulkinsert.c_bulk_insert(nameFile, server, database, username, password, table)
     print('end upload table : {:.1f}'.format(time.time() - start_time))
+run()
