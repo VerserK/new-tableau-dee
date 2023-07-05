@@ -31,15 +31,13 @@ def run():
     #configure sql server
     logging.info('Start E-pro')
     start_time = time.time()
-    server = 'skcdwhprdmi.siamkubota.co.th'
+    server = 'skcdwhprdmi.public.bf8966ba22c0.database.windows.net,3342'
     database =  'E_Procurement'
     username = 'skcadminuser'
     password = 'DEE@skcdwhtocloud2022prd'
     driver = '{ODBC Driver 17 for SQL Server}'
     dsn = 'DRIVER='+driver+';SERVER='+server+';PORT=1433;DATABASE='+database+';UID='+username+';PWD='+ password
     table = 'PoDocument'
-    conn = pyodbc.connect(dsn)
-    cursor = conn.cursor()
     params = urllib.parse.quote_plus(dsn)
     engine = sa.create_engine('mssql+pyodbc:///?odbc_connect=%s' % params)
     connection = engine.connect()
@@ -50,8 +48,10 @@ def run():
     nameFile = table + '.csv'
     tmp = []
     qry = 'SELECT * FROM [172.29.196.79].[SKCeProcurement].[dbo].' + table
+    countRows = 0
     for chunk in pd.read_sql_query(qry, con=engine,chunksize=10000):
-        print(chunk)
+        countRows += 1
+        logging.info(countRows)
         tmp.append(chunk)
     df = pd.concat(tmp)
     logging.info('Read Data to Dataframe')
@@ -66,7 +66,7 @@ def run():
     df['RequireSignedPO'] = df['RequireSignedPO'].replace(False,0)
     logging.info('Prep Data Complate')
 
-    delete = 'TRUNCATE TABLE ' + table
+    delete = 'TRUNCATE TABLE [E_Procurement].[dbo].[' + table
     connection.execute(sa_text(delete))
     trans.commit()
     connection.close()
