@@ -33,7 +33,7 @@ def run():
     username = 'skcadminuser'
     password = 'DEE@skcdwhtocloud2022prd'
     driver = '{ODBC Driver 17 for SQL Server}'
-    dsn = 'DRIVER='+driver+';SERVER='+server+';PORT=1433;DATABASE='+database+';UID='+username+';PWD='+ password
+    dsn = 'DRIVER='+driver+';SERVER='+server+';DATABASE='+database+';UID='+username+';PWD='+ password
     table = 'EvDocumentItem'
     params = urllib.parse.quote_plus(dsn)
     engine = sa.create_engine('mssql+pyodbc:///?odbc_connect=%s' % params)
@@ -42,17 +42,27 @@ def run():
 
     #PATH
     tempFilePath = tempfile.gettempdir()
-
     nameFile = table + '.csv'
+    tmp = []
     qry = 'SELECT * FROM [172.29.196.79].[SKCeProcurement].[dbo].' + table
-    df = pd.read_sql_query(qry, con=engine)
+    countRows = 0
+    for chunk in pd.read_sql_query(qry, con=engine,chunksize=10000):
+        countRows += 1
+        logging.info(countRows)
+        tmp.append(chunk)
+    df = pd.concat(tmp)
+    logging.info('Read Data to Dataframe')
+
     df['RequireComment'] = df['RequireComment'].fillna(199)
     df['RequireComment'] = df['RequireComment'].replace(False,0)
     df['RequireComment'] = df['RequireComment'].replace(199, None)
-    delete = 'TRUNCATE TABLE ' + table
+
+    delete = 'TRUNCATE TABLE [E_Procurement].[dbo].[' + table + ']'
     connection.execute(sa_text(delete))
     trans.commit()
     connection.close()
+    logging.info('Delete Complate')
+
     df.to_csv(os.path.join(tempFilePath,nameFile), index=False, header=None)
     upload_csv(os.path.join(tempFilePath, nameFile))
     bulkinsert.c_bulk_insert(nameFile, server, database, username, password, table)

@@ -33,21 +33,26 @@ def run():
     username = 'skcadminuser'
     password = 'DEE@skcdwhtocloud2022prd'
     driver = '{ODBC Driver 17 for SQL Server}'
-    dsn = 'DRIVER='+driver+';SERVER='+server+';PORT=1433;DATABASE='+database+';UID='+username+';PWD='+ password
+    dsn = 'DRIVER='+driver+';SERVER='+server+';DATABASE='+database+';UID='+username+';PWD='+ password
     table = 'GrDocumentItem'
-    conn = pyodbc.connect(dsn)
-    cursor = conn.cursor()
-    # params = urllib.parse.quote_plus(dsn)
-    # engine = sa.create_engine('mssql+pyodbc:///?odbc_connect=%s' % params)
-    # connection = engine.connect()
-    # trans = connection.begin()
+    params = urllib.parse.quote_plus(dsn)
+    engine = sa.create_engine('mssql+pyodbc:///?odbc_connect=%s' % params)
+    connection = engine.connect()
+    trans = connection.begin()
 
     #PATH
     tempFilePath = tempfile.gettempdir()
-
     nameFile = table + '.csv'
+    tmp = []
     qry = 'SELECT * FROM [172.29.196.79].[SKCeProcurement].[dbo].' + table
-    df = pd.read_sql_query(qry, con=conn)
+    countRows = 0
+    for chunk in pd.read_sql_query(qry, con=engine,chunksize=10000):
+        countRows += 1
+        logging.info(countRows)
+        tmp.append(chunk)
+    df = pd.concat(tmp)
+    logging.info('Read Data to Dataframe')
+
     df['DeliveryCompleted'] = df['DeliveryCompleted'].replace(True,1)
     df['DeliveryCompleted'] = df['DeliveryCompleted'].replace(False,0)
     df['IsCancel'] = df['IsCancel'].replace(True,1)
@@ -56,10 +61,13 @@ def run():
     df['CancelMaterialItem'] = df['CancelMaterialItem'].astype(int)
     df['CancelMaterialItem'] = df['CancelMaterialItem'].replace(993,None)
     df = df[df.columns[:-1]]
-    delete = 'TRUNCATE TABLE ' + table
-    cursor.execute(delete)
-    conn.commit()
-    conn.close()
+
+    delete = 'TRUNCATE TABLE [E_Procurement].[dbo].[' + table + ']'
+    connection.execute(sa_text(delete))
+    trans.commit()
+    connection.close()
+    logging.info('Delete Complate')
+
     df.to_csv(os.path.join(tempFilePath,nameFile), index=False, encoding='utf-8', header=None)
     upload_csv(os.path.join(tempFilePath, nameFile))
     bulkinsert.c_bulk_insert(nameFile, server, database, username, password, table)

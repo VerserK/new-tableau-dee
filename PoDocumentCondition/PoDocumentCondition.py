@@ -41,10 +41,17 @@ def run():
 
     #PATH
     tempFilePath = tempfile.gettempdir()
-
     nameFile = table + '.csv'
+    tmp = []
     qry = 'SELECT * FROM [172.29.196.79].[SKCeProcurement].[dbo].' + table
-    df = pd.read_sql_query(qry, con=engine)
+    countRows = 0
+    for chunk in pd.read_sql_query(qry, con=engine,chunksize=10000):
+        countRows += 1
+        logging.info(countRows)
+        tmp.append(chunk)
+    df = pd.concat(tmp)
+    logging.info('Read Data to Dataframe')
+
     df['DocumentId'] = df['DocumentId'].fillna(993)
     df['DocumentId'] = df['DocumentId'].astype(int)
     df['DocumentId'] = df['DocumentId'].replace(993,None)
@@ -53,10 +60,13 @@ def run():
     df['ItemId'] = df['ItemId'].replace(993,None)
     df['ConvertingToBaseUnitFactor'] = df['ConvertingToBaseUnitFactor'].astype(int)
     df = df[df.columns[:-1]]
-    delete = 'TRUNCATE TABLE ' + table
+    
+    delete = 'TRUNCATE TABLE [E_Procurement].[dbo].[' + table + ']'
     connection.execute(sa_text(delete))
     trans.commit()
     connection.close()
+    logging.info('Delete Complate')
+
     df.to_csv(os.path.join(tempFilePath,nameFile), index=False, encoding='utf-8', header=None)
     upload_csv(os.path.join(tempFilePath, nameFile))
     bulkinsert.c_bulk_insert(nameFile, server, database, username, password, table)
