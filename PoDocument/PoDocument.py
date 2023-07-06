@@ -66,7 +66,7 @@ def run():
     df['RequireSignedPO'] = df['RequireSignedPO'].replace(False,0)
     logging.info('Prep Data Complate')
 
-    delete = 'TRUNCATE TABLE [E_Procurement].[dbo].[' + table
+    delete = 'TRUNCATE TABLE [E_Procurement].[dbo].[' + table + ']'
     connection.execute(sa_text(delete))
     trans.commit()
     connection.close()
