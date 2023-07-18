@@ -72,7 +72,7 @@ def run():
             blob_client.upload_blob(data,overwrite=True)
 
     # create drive api client
-    service = build('drive', 'v3', credentials=creds)
+    service = build('drive', 'v3', credentials=creds, cache_discovery=False)
 
     file_id = '1-uc9oOeoFpaCgNO8XGrbkCGyOxRhsuDA'
     file_name = 'KISAlertZero.xlsx'
