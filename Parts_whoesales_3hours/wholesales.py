@@ -123,15 +123,13 @@ def run():
             df['Del1stDate'] = pd.to_datetime(df['Del1stDate'],format='%d.%m.%Y')
             df['PricingDate'] = pd.to_datetime(df['PricingDate'],format='%d.%m.%Y')
             df['Changed date (SO item)'] = pd.to_datetime(df['Changed date (SO item)'], errors='coerce',format='%d.%m.%Y')
-            start_ts = datetime.datetime.now().strftime("%Y-%m-%d, %H:%M:%S")
-            logging.info('Datetime Start:', start_ts)
+            logging.info('Datetime Start')
             cursor = connect_db('skcdwhprdmi.public.bf8966ba22c0.database.windows.net,3342', 'Parts', 'skcadminuser', 'DEE@skcdwhtocloud2022prd').cursor()
             qry = 'DELETE FROM [Parts].[dbo].[wholesale] WHERE OrderDate >= ? '
             df = df['OrderDate'].drop_duplicates()
             cursor.execute(qry,df.min())
             cursor.commit()
-            end_ts = datetime.datetime.now().strftime("%Y-%m-%d, %H:%M:%S")
-            logging.info('Datetime End:', end_ts)
+            logging.info('Datetime End:')
 
     #read file wschange_date
     for blob in blob_list:
