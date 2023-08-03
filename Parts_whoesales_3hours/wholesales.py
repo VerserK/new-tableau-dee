@@ -123,7 +123,7 @@ def run():
             df['PricingDate'] = pd.to_datetime(df['PricingDate'],format='%d.%m.%Y')
             df['Changed date (SO item)'] = pd.to_datetime(df['Changed date (SO item)'], errors='coerce',format='%d.%m.%Y')
             start_ts = datetime.datetime.now()
-            print('Datetime Start:', start_ts)
+            logging.info('Datetime Start:', start_ts)
             cursor = connect_db('skcdwhprdmi.public.bf8966ba22c0.database.windows.net,3342', 'Parts', 'skcadminuser', 'DEE@skcdwhtocloud2022prd').cursor()
             qry = 'DELETE FROM [Parts].[dbo].[wholesale] WHERE OrderDate >= ? '
             num = 0
@@ -131,9 +131,9 @@ def run():
             cursor.execute(qry,df.min())
             cursor.commit()
             end_ts = datetime.datetime.now()
-            print('Datetime End:', end_ts)
+            logging.info('Datetime End:', end_ts)
             delta = end_ts - start_ts
-            print('Difference is:', delta)
+            logging.info('Difference is:', delta)
 
     #read file wschange_date
     for blob in blob_list:
@@ -195,7 +195,6 @@ def run():
             dfPrep = dfPrep[dfPrep.columns[:-1]]
 
     #read file wsdata_date
-    blob_list = container_client.list_blobs()
     for blob in blob_list:
         blob_client = container_client.get_blob_client(blob.name)
         if blob.name == 'ws_data.csv':
