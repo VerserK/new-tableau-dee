@@ -1,15 +1,10 @@
 from ftplib import FTP
 import pandas as pd
 import numpy as np
-import requests
 import pyodbc
 import os
 import datetime
 import time
-import sqlalchemy as sa
-from sqlalchemy import event , text as sa_text
-import urllib
-from azure.identity import ClientSecretCredential
 from azure.storage.blob import BlobServiceClient, BlobClient, ContainerClient, ContentSettings
 from . import bulkinsert #on cloud
 # from bulkinsert import c_bulk_insert
