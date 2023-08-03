@@ -163,8 +163,10 @@ def run():
                 dfl.append(chunk)
                 logging.info('Count Chunk ' + str(chunksizeNum))
                 chunksizeNum += chunksize
+                dfTest = pd.concat(dfl, ignore_index=True)
+                dfTest.to_csv(os.path.join(path,'dfTest.csv'), mode='a', index=False, header=None)
             # Start appending data from list to dataframe
-            dfTest = pd.concat(dfl, ignore_index=True)
+            # dfTest = pd.concat(dfl, ignore_index=True)
             logging.info('Read_sql time for table 1')
 
             col_name = ['SaleOrder','Orderitem','custpo','OrderDate','ReqDate','Del1stDate','PricingDate','SOType','itemcat','SOrg','DistCh','division','sloc','plant','soldto','shipto','payer','PartNo','qty','idreason','reason_desc','unit','listprice','total_listprice','netvalue','total_netvalue','Currency']
