@@ -98,6 +98,7 @@ def stamp_log(table,flag=False):
                         body=dict(majorDimension='ROWS',
                         values=logs)).execute()
     return logs
+
 def run():
     #Tempfile Path
     path = tempfile.gettempdir()
@@ -122,18 +123,15 @@ def run():
             df['Del1stDate'] = pd.to_datetime(df['Del1stDate'],format='%d.%m.%Y')
             df['PricingDate'] = pd.to_datetime(df['PricingDate'],format='%d.%m.%Y')
             df['Changed date (SO item)'] = pd.to_datetime(df['Changed date (SO item)'], errors='coerce',format='%d.%m.%Y')
-            start_ts = datetime.datetime.now()
+            start_ts = datetime.datetime.now().strftime("%Y-%m-%d, %H:%M:%S")
             logging.info('Datetime Start:', start_ts)
             cursor = connect_db('skcdwhprdmi.public.bf8966ba22c0.database.windows.net,3342', 'Parts', 'skcadminuser', 'DEE@skcdwhtocloud2022prd').cursor()
             qry = 'DELETE FROM [Parts].[dbo].[wholesale] WHERE OrderDate >= ? '
-            num = 0
             df = df['OrderDate'].drop_duplicates()
             cursor.execute(qry,df.min())
             cursor.commit()
-            end_ts = datetime.datetime.now()
+            end_ts = datetime.datetime.now().strftime("%Y-%m-%d, %H:%M:%S")
             logging.info('Datetime End:', end_ts)
-            delta = end_ts - start_ts
-            logging.info('Difference is:', delta)
 
     #read file wschange_date
     for blob in blob_list:
@@ -159,10 +157,8 @@ def run():
             out_final = pd.concat([df, out]).drop_duplicates(subset=['SaleOrder', 'Orderitem'], keep='last')
             out_final = out_final.fillna(0)
 
-            start_time = time.time()
             dfl = []
-            start_time = time.time()
-            startDate = datetime.datetime.today().strftime('%d-%m-%Y %H:%M:%S')
+            startDate = datetime.datetime.today().strftime("%Y-%m-%d, %H:%M:%S")
             chunksize = 100000
             chunksizeNum = 100000
 
@@ -174,9 +170,8 @@ def run():
                 chunksizeNum += chunksize
             # Start appending data from list to dataframe
             dfTest = pd.concat(dfl, ignore_index=True)
-            logging.info('Read_sql time for table 1: {:.1f}'.format(time.time() - start_time))
+            logging.info('Read_sql time for table 1')
 
-            # dfTest = pd.read_csv(r"D:\Parts\PricingDate\change\dfFinalChange.csv", low_memory=False)
             col_name = ['SaleOrder','Orderitem','custpo','OrderDate','ReqDate','Del1stDate','PricingDate','SOType','itemcat','SOrg','DistCh','division','sloc','plant','soldto','shipto','payer','PartNo','qty','idreason','reason_desc','unit','listprice','total_listprice','netvalue','total_netvalue','Currency']
             dfTest.columns = col_name
 
@@ -208,8 +203,8 @@ def run():
             df['PricingDate'] = pd.to_datetime(df['PricingDate'], format='%d.%m.%Y', errors = 'coerce')
             df["PricingDate"].fillna("9999-12-31", inplace = True)
             df['Changed date (SO item)'] = pd.to_datetime(df['Changed date (SO item)'], errors='coerce',format='%d.%m.%Y')
-            start_ts = datetime.datetime.now()
-            print('Datetime Upload Start:', start_ts)
+            start_ts = datetime.datetime.now().strftime("%Y-%m-%d, %H:%M:%S")
+            logging.info('Datetime Upload Start :', start_ts)
             df2 = df[df.columns[:-1]]
             
             df3 = dfPrep.merge(df2, on=['SaleOrder','Orderitem'], how='right')
@@ -222,7 +217,7 @@ def run():
             df3.columns = col_name
             result = pd.concat([dfPrep,df3], ignore_index=True).drop_duplicates(keep='last', subset=['SaleOrder','Orderitem'])
 
-            print('Finished Merge Dataframe')
+            logging.info('Finished Merge Dataframe')
             
             result.to_csv(os.path.join(path,'halfday','ws_data_final.csv'), index=False, header=None)
             mydb = connect_db('skcdwhprdmi.public.bf8966ba22c0.database.windows.net,3342', 'Parts', 'skcadminuser', 'DEE@skcdwhtocloud2022prd')
@@ -230,11 +225,7 @@ def run():
             qry = 'TRUNCATE TABLE [Parts].[dbo].[wholesale]'
             cursor.execute(qry)
             cursor.commit()
-            print('TRUNCATE Complete')
+            logging.info('TRUNCATE Complete')
             upload_csv(os.path.join(path,'halfday', "ws_data_final.csv"))
             flag = bulkinsert.c_bulk_insert('ws_data_final.csv', 'skcdwhprdmi.public.bf8966ba22c0.database.windows.net,3342', 'Parts', 'skcadminuser', 'DEE@skcdwhtocloud2022prd', 'wholesale')
             stamp_log('wholesales',flag)
-            # end_ts = datetime.datetime.now()
-            # print('Datetime Upload End:', end_ts)
-            # delta = end_ts - start_ts
-            # print('Difference is:', delta)
