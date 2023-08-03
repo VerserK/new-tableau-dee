@@ -111,6 +111,7 @@ def run():
             with open(os.path.join(path,blob.name), mode='wb') as sample_blob:
                 download_stream = blob_client.download_blob()
                 sample_blob.write(download_stream.readall())
+            logging.info('Finished Download File ' + blob.name)
 
             #Prep Data
             df = pd.read_csv(os.path.join(path,blob.name))
