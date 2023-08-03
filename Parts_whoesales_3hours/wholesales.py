@@ -131,9 +131,6 @@ def run():
             cursor.commit()
             logging.info('Datetime End:')
 
-    #read file wschange_date
-    for blob in blob_list:
-        blob_client = container_client.get_blob_client(blob.name)
         if blob.name == 'wschange_data.csv':
             logging.info("Downloading..." + blob.name)
             with open(os.path.join(path,blob.name), mode='wb') as sample_blob:
@@ -187,11 +184,7 @@ def run():
             dfPrep['Currency'] = dfPrep['Currency'].str.strip('"')
             dfPrep = dfPrep[dfPrep.columns[:-1]]
 
-    #read file wsdata_date
-    for blob in blob_list:
-        blob_client = container_client.get_blob_client(blob.name)
-        if blob.name == 'ws_data.csv':
-            df = pd.read_csv(os.path.join(path,blob.name))
+            df = pd.read_csv(os.path.join(path,'ws_data.csv'))
             col_name = ['SaleOrder','Orderitem','custpo','OrderDate','ReqDate','Del1stDate','PricingDate','SOType','itemcat','SOrg','DistCh','division','sloc','plant','soldto','shipto','payer','PartNo','qty','idreason','reason_desc','unit','listprice','total_listprice','netvalue','total_netvalue','Currency','Changed date (SO item)']
             df.columns = col_name
             df['PartNo'] = df['PartNo'].astype(str).apply(lambda x: x if (len(x) <= 11) else f"{x[:11]}-{x[11:]}")
