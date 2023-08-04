@@ -158,7 +158,7 @@ def run():
             chunksizeNum = 100000
 
             logging.info('Start Query SQL' + startDate)
-            if os.path.join('dfTest.csv') == 'dfTest.csv':
+            if os.path.join(path,'dfTest.csv') == 'dfTest.csv':
                 os.remove(os.path.join(path,'dfTest.csv'))
 
             for chunk in pd.read_sql_query(sql="SELECT * FROM [Parts].[dbo].[wholesale]", con=connect_db('skcdwhprdmi.public.bf8966ba22c0.database.windows.net,3342', 'Parts', 'skcadminuser', 'DEE@skcdwhtocloud2022prd'), chunksize=chunksize):
