@@ -164,17 +164,11 @@ def run():
             for chunk in pd.read_sql_query(sql="SELECT * FROM [Parts].[dbo].[wholesale]", con=connect_db('skcdwhprdmi.public.bf8966ba22c0.database.windows.net,3342', 'Parts', 'skcadminuser', 'DEE@skcdwhtocloud2022prd'), chunksize=chunksize):
                 # Start Appending Data Chunks from SQL Result set into List
                 chunk.to_csv(os.path.join(path,'dfTest.csv'), mode='a', index=False, header=None)
-                # dfl.append(chunk)
                 logging.info('Count Chunk ' + str(chunksizeNum))
                 chunksizeNum += chunksize
-            # dfTest = pd.concat(dfl, ignore_index=True)
-            # dfTest.to_csv(os.path.join(path,'dfTest.csv'), mode='a', index=False, header=None)
             #Start appending data from list to dataframe
             dfTest = pd.read_csv(os.path.join(path,'dfTest.csv'), low_memory=False)
-            # chunksize = 10 ** 6
-            # with pd.read_csv(os.path.join(path,'dfTest.csv'), chunksize=chunksize) as reader:
-            #     for chunk in reader:
-            #         print(chunk)
+
             logging.info('Read_sql time for table 1')
 
             col_name = ['SaleOrder','Orderitem','custpo','OrderDate','ReqDate','Del1stDate','PricingDate','SOType','itemcat','SOrg','DistCh','division','sloc','plant','soldto','shipto','payer','PartNo','qty','idreason','reason_desc','unit','listprice','total_listprice','netvalue','total_netvalue','Currency']
