@@ -170,13 +170,13 @@ def run():
             # dfTest = pd.concat(dfl, ignore_index=True)
             # dfTest.to_csv(os.path.join(path,'dfTest.csv'), mode='a', index=False, header=None)
             #Start appending data from list to dataframe
-            dfTest = pd.read_csv(os.path.join(path,'dfTest.csv'))
-            chunksize = 10 ** 6
-            with pd.read_csv(os.path.join(path,'dfTest.csv'), chunksize=chunksize) as reader:
-                for chunk in reader:
-                    print(chunk)
+            dfTest = pd.read_csv(os.path.join(path,'dfTest.csv'), low_memory=False)
+            # chunksize = 10 ** 6
+            # with pd.read_csv(os.path.join(path,'dfTest.csv'), chunksize=chunksize) as reader:
+            #     for chunk in reader:
+            #         print(chunk)
             logging.info('Read_sql time for table 1')
-            exit()
+
             col_name = ['SaleOrder','Orderitem','custpo','OrderDate','ReqDate','Del1stDate','PricingDate','SOType','itemcat','SOrg','DistCh','division','sloc','plant','soldto','shipto','payer','PartNo','qty','idreason','reason_desc','unit','listprice','total_listprice','netvalue','total_netvalue','Currency']
             dfTest.columns = col_name
 
