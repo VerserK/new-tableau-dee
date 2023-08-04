@@ -176,7 +176,7 @@ def run():
                 for chunk in reader:
                     print(chunk)
             logging.info('Read_sql time for table 1')
-
+            exit()
             col_name = ['SaleOrder','Orderitem','custpo','OrderDate','ReqDate','Del1stDate','PricingDate','SOType','itemcat','SOrg','DistCh','division','sloc','plant','soldto','shipto','payer','PartNo','qty','idreason','reason_desc','unit','listprice','total_listprice','netvalue','total_netvalue','Currency']
             dfTest.columns = col_name
 
