@@ -163,11 +163,12 @@ def run():
 
             for chunk in pd.read_sql_query(sql="SELECT * FROM [Parts].[dbo].[wholesale]", con=connect_db('skcdwhprdmi.public.bf8966ba22c0.database.windows.net,3342', 'Parts', 'skcadminuser', 'DEE@skcdwhtocloud2022prd'), chunksize=chunksize):
                 # Start Appending Data Chunks from SQL Result set into List
-                dfl.append(chunk)
+                chunk.to_csv(os.path.join(path,'dfTest.csv'), mode='a', index=False, header=None)
+                # dfl.append(chunk)
                 logging.info('Count Chunk ' + str(chunksizeNum))
                 chunksizeNum += chunksize
-            dfTest = pd.concat(dfl, ignore_index=True)
-            dfTest.to_csv(os.path.join(path,'dfTest.csv'), mode='a', index=False, header=None)
+            # dfTest = pd.concat(dfl, ignore_index=True)
+            # dfTest.to_csv(os.path.join(path,'dfTest.csv'), mode='a', index=False, header=None)
             #Start appending data from list to dataframe
             dfTest = pd.read_csv(os.path.join(path,'dfTest.csv'))
             chunksize = 10 ** 6
