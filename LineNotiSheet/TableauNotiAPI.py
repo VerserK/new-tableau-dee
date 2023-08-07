@@ -13,8 +13,8 @@ def GetViewId(dashboard):
     headers = {"Content-Type": "application/json",
                "Accept":"application/json"}
     payload = { "credentials": {
-                        		"personalAccessTokenName": "LineNotify",
-                        		"personalAccessTokenSecret": "sThBa6fLQaqZz3JcrFBeDA==:kZdmCFFc5jiWUXGFpPjE3AeJ5vkp0dlQ",
+                        		"personalAccessTokenName": "LineNotifyLong",
+                        		"personalAccessTokenSecret": "vorUtiPoT7eO8HfOY/2KSQ==:XyNvevnZw5VI9D3zGcJZrgUM82XVGORu",
                         		"site": {
                         			"contentUrl": "skctableau"
                         		}
