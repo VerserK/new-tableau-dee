@@ -1,5 +1,5 @@
 from numpy import NaN
-import requests, os, json, gspread, tempfile
+import requests, os, json, tempfile
 from dotenv import load_dotenv
 import pandas as pd
 from azure.storage.blob import BlobServiceClient, __version__
@@ -133,4 +133,3 @@ def run():
                         range=RANGE_NAME,valueInputOption='USER_ENTERED',
                         body=dict(majorDimension='ROWS',
                         values=logs)).execute()
-run()
