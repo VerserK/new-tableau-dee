@@ -172,7 +172,12 @@ def run():
             # upload_csv(os.path.join(path, "dfTest.csv"))
             # exit()
 
-            dfTest = pd.read_csv(os.path.join(path,'dfTest.csv'), chunksize=chunksize)
+            # dfTest = pd.read_csv(os.path.join(path,'dfTest.csv'), chunksize=chunksize)
+            dl=[]
+            for chunk in pd.read_csv(os.path.join(path,'dfTest.csv'), chunksize=chunksize):
+                dl.append(chunk)
+                logging.info(chunk)
+            dfTest = pd.concat(dl)
 
             logging.info('Read CSV to Dataframe')
 
