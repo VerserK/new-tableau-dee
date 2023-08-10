@@ -18,8 +18,8 @@ import io
 from io import StringIO
 
 #sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__))))
-basedir = os.path.abspath(os.path.dirname(__file__))
-load_dotenv(os.path.join(basedir, '.env'))
+# basedir     = os.path.abspath(os.path.dirname(__file__))
+load_dotenv()
 
 connectedAppClientId = os.getenv('connectedAppClientId', None)
 connectedAppSecretId = os.getenv('connectedAppSecretId', None)
