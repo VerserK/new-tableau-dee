@@ -124,7 +124,7 @@ def run():
             df['PricingDate'] = pd.to_datetime(df['PricingDate'],format='%d.%m.%Y')
             df['Changed date (SO item)'] = pd.to_datetime(df['Changed date (SO item)'], errors='coerce',format='%d.%m.%Y')
             logging.info('Datetime Start')
-            cursor = connect_db('skcdwhprdmi.public.bf8966ba22c0.database.windows.net,3342', 'Parts', 'skcadminuser', 'DEE@skcdwhtocloud2022prd').cursor()
+            cursor = connect_db('skcdwhprdmi.siamkubota.co.th', 'Parts', 'skcadminuser', 'DEE@skcdwhtocloud2022prd').cursor()
             qry = 'DELETE FROM [Parts].[dbo].[wholesale] WHERE OrderDate >= ? '
             df = df['OrderDate'].drop_duplicates()
             cursor.execute(qry,df.min())
@@ -162,7 +162,7 @@ def run():
                 logging.info('Delete File dfTest.csv')
                 os.remove(os.path.join(path,'dfTest.csv'))
 
-            for chunk in pd.read_sql_query(sql="SELECT * FROM [Parts].[dbo].[wholesale]", con=connect_db('skcdwhprdmi.public.bf8966ba22c0.database.windows.net,3342', 'Parts', 'skcadminuser', 'DEE@skcdwhtocloud2022prd'), chunksize=chunksize):
+            for chunk in pd.read_sql_query(sql="SELECT * FROM [Parts].[dbo].[wholesale]", con=connect_db('skcdwhprdmi.siamkubota.co.th', 'Parts', 'skcadminuser', 'DEE@skcdwhtocloud2022prd'), chunksize=chunksize):
                 # Start Appending Data Chunks from SQL Result set into List
                 chunk.to_csv(os.path.join(path,'dfTest.csv'), mode='a', index=False, header=None)
                 logging.info('Count Chunk ' + str(chunksizeNum))
@@ -225,12 +225,12 @@ def run():
             logging.info('Finished Merge Dataframe')
             
             result.to_csv(os.path.join(path,'ws_data_final.csv'), index=False, header=None)
-            mydb = connect_db('skcdwhprdmi.public.bf8966ba22c0.database.windows.net,3342', 'Parts', 'skcadminuser', 'DEE@skcdwhtocloud2022prd')
+            mydb = connect_db('skcdwhprdmi.siamkubota.co.th', 'Parts', 'skcadminuser', 'DEE@skcdwhtocloud2022prd')
             cursor = mydb.cursor()
             qry = 'TRUNCATE TABLE [Parts].[dbo].[wholesale]'
             cursor.execute(qry)
             cursor.commit()
             logging.info('TRUNCATE Complete')
             upload_csv(os.path.join(path, "ws_data_final.csv"))
-            flag = bulkinsert.c_bulk_insert('ws_data_final.csv', 'skcdwhprdmi.public.bf8966ba22c0.database.windows.net,3342', 'Parts', 'skcadminuser', 'DEE@skcdwhtocloud2022prd', 'wholesale')
+            flag = bulkinsert.c_bulk_insert('ws_data_final.csv', 'skcdwhprdmi.siamkubota.co.th', 'Parts', 'skcadminuser', 'DEE@skcdwhtocloud2022prd', 'wholesale')
             stamp_log('wholesales',flag)
