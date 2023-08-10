@@ -167,6 +167,12 @@ def run():
                 logging.info('Count Chunk ' + str(chunksizeNum))
                 chunksizeNum += chunksize
             #Start appending data from list to dataframe
+            upload_csv(os.path.join(path, "dfTest.csv"))
+            exit()
+            ### Download file thaadmrtsditos to tmp function
+            blob_list = container_client.list_blobs()
+            for blob in blob_list:
+                print(blob.name)
             dfTest = pd.read_csv(os.path.join(path,'dfTest.csv'), low_memory=False)
 
             logging.info('Read_sql time for table 1')
@@ -214,13 +220,13 @@ def run():
 
             logging.info('Finished Merge Dataframe')
             
-            result.to_csv(os.path.join(path,'halfday','ws_data_final.csv'), index=False, header=None)
+            result.to_csv(os.path.join(path,'ws_data_final.csv'), index=False, header=None)
             mydb = connect_db('skcdwhprdmi.public.bf8966ba22c0.database.windows.net,3342', 'Parts', 'skcadminuser', 'DEE@skcdwhtocloud2022prd')
             cursor = mydb.cursor()
             qry = 'TRUNCATE TABLE [Parts].[dbo].[wholesale]'
             cursor.execute(qry)
             cursor.commit()
             logging.info('TRUNCATE Complete')
-            upload_csv(os.path.join(path,'halfday', "ws_data_final.csv"))
+            upload_csv(os.path.join(path, "ws_data_final.csv"))
             flag = bulkinsert.c_bulk_insert('ws_data_final.csv', 'skcdwhprdmi.public.bf8966ba22c0.database.windows.net,3342', 'Parts', 'skcadminuser', 'DEE@skcdwhtocloud2022prd', 'wholesale')
             stamp_log('wholesales',flag)
