@@ -166,16 +166,14 @@ def run():
                 chunk.to_csv(os.path.join(path,'dfTest.csv'), mode='a', index=False, header=None)
                 logging.info('Count Chunk ' + str(chunksizeNum))
                 chunksizeNum += chunksize
+            logging.info('Read sql to CSV Final')
             #Start appending data from list to dataframe
-            upload_csv(os.path.join(path, "dfTest.csv"))
-            exit()
-            ### Download file thaadmrtsditos to tmp function
-            blob_list = container_client.list_blobs()
-            for blob in blob_list:
-                print(blob.name)
-            dfTest = pd.read_csv(os.path.join(path,'dfTest.csv'), low_memory=False)
+            # upload_csv(os.path.join(path, "dfTest.csv"))
+            # exit()
 
-            logging.info('Read_sql time for table 1')
+            dfTest = pd.read_csv(os.path.join(path,'dfTest.csv'), chunksize=chunksize, low_memory=False)
+
+            logging.info('Read CSV to Dataframe')
 
             col_name = ['SaleOrder','Orderitem','custpo','OrderDate','ReqDate','Del1stDate','PricingDate','SOType','itemcat','SOrg','DistCh','division','sloc','plant','soldto','shipto','payer','PartNo','qty','idreason','reason_desc','unit','listprice','total_listprice','netvalue','total_netvalue','Currency']
             dfTest.columns = col_name
