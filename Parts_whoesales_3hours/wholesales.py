@@ -159,6 +159,7 @@ def run():
 
             logging.info('Start Query SQL' + startDate)
             if os.path.exists(path + '\dfTest.csv') == True:
+                logging.info('Delete File dfTest.csv')
                 os.remove(os.path.join(path,'dfTest.csv'))
 
             for chunk in pd.read_sql_query(sql="SELECT * FROM [Parts].[dbo].[wholesale]", con=connect_db('skcdwhprdmi.public.bf8966ba22c0.database.windows.net,3342', 'Parts', 'skcadminuser', 'DEE@skcdwhtocloud2022prd'), chunksize=chunksize):
@@ -171,7 +172,7 @@ def run():
             # upload_csv(os.path.join(path, "dfTest.csv"))
             # exit()
 
-            dfTest = pd.read_csv(os.path.join(path,'dfTest.csv'), chunksize=chunksize, low_memory=False)
+            dfTest = pd.read_csv(os.path.join(path,'dfTest.csv'), chunksize=chunksize)
 
             logging.info('Read CSV to Dataframe')
 
