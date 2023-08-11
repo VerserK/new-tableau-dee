@@ -6,8 +6,8 @@ import os
 import datetime
 import time
 from azure.storage.blob import BlobServiceClient, BlobClient, ContainerClient, ContentSettings
-# from . import bulkinsert #on cloud
-from bulkinsert import c_bulk_insert
+from . import bulkinsert #on cloud
+# from bulkinsert import c_bulk_insert
 from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
