@@ -6,8 +6,8 @@ import os
 import datetime
 import time
 from azure.storage.blob import BlobServiceClient, BlobClient, ContainerClient, ContentSettings
-from . import bulkinsert #on cloud
-# from bulkinsert import c_bulk_insert
+# from . import bulkinsert #on cloud
+from bulkinsert import c_bulk_insert
 from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
@@ -113,6 +113,7 @@ def run():
                 download_stream = blob_client.download_blob()
                 sample_blob.write(download_stream.readall())
             logging.info('Finished Download File ' + blob.name)
+            print('Finished Download File ' + blob.name)
 
             #Prep Data
             df = pd.read_csv(os.path.join(path,blob.name))
@@ -130,6 +131,7 @@ def run():
             cursor.execute(qry,df.min())
             cursor.commit()
             logging.info('Datetime End:')
+            print('Datetime End:')
 
         if blob.name == 'wschange_data.csv':
             logging.info("Downloading..." + blob.name)
@@ -152,7 +154,6 @@ def run():
             out_final = pd.concat([df, out]).drop_duplicates(subset=['SaleOrder', 'Orderitem'], keep='last')
             out_final = out_final.fillna(0)
 
-            dfl = []
             startDate = datetime.datetime.today().strftime("%Y-%m-%d, %H:%M:%S")
             chunksize = 100000
             chunksizeNum = 100000
@@ -166,19 +167,18 @@ def run():
                 # Start Appending Data Chunks from SQL Result set into List
                 chunk.to_csv(os.path.join(path,'dfTest.csv'), mode='a', index=False, header=None)
                 logging.info('Count Chunk ' + str(chunksizeNum))
+                print('Count Chunk ' + str(chunksizeNum))
                 chunksizeNum += chunksize
             logging.info('Read sql to CSV Final')
+            print('Read sql to CSV Final')
             #Start appending data from list to dataframe
             # upload_csv(os.path.join(path, "dfTest.csv"))
-            # exit()
 
             # dfTest = pd.read_csv(os.path.join(path,'dfTest.csv'), chunksize=chunksize)
             dl=[]
-            for chunk in pd.read_csv(os.path.join(path,'dfTest.csv'), chunksize=chunksize):
+            for chunk in pd.read_csv(os.path.join(path,'dfTest.csv'), chunksize=chunksize, low_memory=False):
                 dl.append(chunk)
-                logging.info(chunk)
             dfTest = pd.concat(dl)
-
             logging.info('Read CSV to Dataframe')
 
             col_name = ['SaleOrder','Orderitem','custpo','OrderDate','ReqDate','Del1stDate','PricingDate','SOType','itemcat','SOrg','DistCh','division','sloc','plant','soldto','shipto','payer','PartNo','qty','idreason','reason_desc','unit','listprice','total_listprice','netvalue','total_netvalue','Currency']
@@ -186,7 +186,7 @@ def run():
 
             dfTest['SaleOrder'] = dfTest['SaleOrder'].astype(int)
             dfTest['Orderitem'] = dfTest['Orderitem'].astype(int)
-
+            
             dfPrep = dfTest.merge(out_final, on=['SaleOrder','Orderitem'], how='left')
             dfPrep1 = [x for x in dfPrep if x.endswith('_y')]
             dfPrep.drop(dfPrep1, axis=1, inplace=True)
@@ -195,8 +195,10 @@ def run():
                     dfPrep.rename(columns={col:col.rstrip('_x')}, inplace=True)
 
             logging.info('Finished Merge Dataframe')
-            dfPrep['Currency'] = dfPrep['Currency'].str.strip('"')
+            dfPrep['Currency'] = dfPrep['Currency'].str.strip('\r')
             dfPrep = dfPrep[dfPrep.columns[:-1]]
+            print(dfPrep)
+            exit()
 
             df = pd.read_csv(os.path.join(path,'ws_data.csv'))
             col_name = ['SaleOrder','Orderitem','custpo','OrderDate','ReqDate','Del1stDate','PricingDate','SOType','itemcat','SOrg','DistCh','division','sloc','plant','soldto','shipto','payer','PartNo','qty','idreason','reason_desc','unit','listprice','total_listprice','netvalue','total_netvalue','Currency','Changed date (SO item)']
