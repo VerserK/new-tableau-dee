@@ -137,7 +137,7 @@ def run():
             dfmin = df.min()
             print(dfmin)
             qry = "DELETE FROM [Parts].[dbo].[wholesale] WHERE OrderDate >= '" + dfmin + "'"
-            conn.execute(sa_text(qry))
+            conn.execution_options(autocommit=True).execute(sa_text(qry))
 
             logging.info('Datetime End:')
             print('Datetime End:')
