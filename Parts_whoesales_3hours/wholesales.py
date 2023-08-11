@@ -36,6 +36,7 @@ conn_string = 'DRIVER={ODBC Driver 17 for SQL Server};SERVER=' + sql_server_nm +
 params = urllib.parse.quote_plus(conn_string)
 engine = sa.create_engine('mssql+pyodbc:///?odbc_connect=%s' % params)
 conn = engine.connect()
+trans = conn.begin()
 
 def upload_csv(local_file_name):
     target_file_name = os.path.basename(local_file_name)
@@ -109,7 +110,7 @@ def stamp_log(table,flag=False):
 def run():
     #Tempfile Path
     path = tempfile.gettempdir()
-
+    
     # Print out the files
     blob_list = container_client.list_blobs()
     for blob in blob_list:
@@ -136,8 +137,38 @@ def run():
             df = df['OrderDate'].drop_duplicates().astype(str)
             dfmin = df.min()
             print(dfmin)
-            qry = "DELETE FROM [Parts].[dbo].[wholesale] WHERE OrderDate >= '" + dfmin + "'"
-            conn.execution_options(autocommit=True).execute(sa_text(qry))
+
+            startDate = datetime.datetime.today().strftime("%Y-%m-%d, %H:%M:%S")
+            chunksize = 100000
+            chunksizeNum = 100000
+
+            logging.info('Start Query SQL' + startDate)
+            if os.path.exists(path + '\dfTest.csv') == True:
+                logging.info('Delete File dfTest.csv')
+                os.remove(os.path.join(path,'dfTest.csv'))
+
+            for chunk in pd.read_sql_query(sql="SELECT * FROM [Parts].[dbo].[wholesale]", con=conn, chunksize=chunksize):
+                # Start Appending Data Chunks from SQL Result set into List
+                chunk.to_csv(os.path.join(path,'dfTest.csv'), mode='a', index=False, header=None)
+                # logging.info('Count Chunk ' + str(chunksizeNum))
+                print('Count Chunk ' + str(chunksizeNum))
+                chunksizeNum += chunksize
+            logging.info('Read sql to CSV Final')
+            print('Read sql to CSV Final')
+
+            dl=[]
+            for chunk in pd.read_csv(os.path.join(path,'dfTest.csv'), chunksize=chunksize, low_memory=False):
+                dl.append(chunk)
+            dfTest = pd.concat(dl)
+            logging.info('Read CSV to Dataframe')
+
+            col_name = ['SaleOrder','Orderitem','custpo','OrderDate','ReqDate','Del1stDate','PricingDate','SOType','itemcat','SOrg','DistCh','division','sloc','plant','soldto','shipto','payer','PartNo','qty','idreason','reason_desc','unit','listprice','total_listprice','netvalue','total_netvalue','Currency']
+            dfTest.columns = col_name
+
+            dfTest.drop(dfTest[dfTest['OrderDate'] >= dfmin].index, inplace = True)
+            
+            # qry = "DELETE FROM [Parts].[dbo].[wholesale] WHERE OrderDate >= '" + dfmin + "'"
+            # conn.execution_options(autocommit=True).execute(sa_text(qry))
 
             logging.info('Datetime End:')
             print('Datetime End:')
@@ -163,35 +194,35 @@ def run():
             out_final = pd.concat([df, out]).drop_duplicates(subset=['SaleOrder', 'Orderitem'], keep='last')
             out_final = out_final.fillna(0)
 
-            startDate = datetime.datetime.today().strftime("%Y-%m-%d, %H:%M:%S")
-            chunksize = 100000
-            chunksizeNum = 100000
+        #     startDate = datetime.datetime.today().strftime("%Y-%m-%d, %H:%M:%S")
+        #     chunksize = 100000
+        #     chunksizeNum = 100000
 
-            logging.info('Start Query SQL' + startDate)
-            if os.path.exists(path + '\dfTest.csv') == True:
-                logging.info('Delete File dfTest.csv')
-                os.remove(os.path.join(path,'dfTest.csv'))
+        #     # logging.info('Start Query SQL' + startDate)
+        #     # if os.path.exists(path + '\dfTest.csv') == True:
+        #     #     logging.info('Delete File dfTest.csv')
+        #     #     os.remove(os.path.join(path,'dfTest.csv'))
 
-            for chunk in pd.read_sql_query(sql="SELECT * FROM [Parts].[dbo].[wholesale]", con=conn, chunksize=chunksize):
-                # Start Appending Data Chunks from SQL Result set into List
-                chunk.to_csv(os.path.join(path,'dfTest.csv'), mode='a', index=False, header=None)
-                # logging.info('Count Chunk ' + str(chunksizeNum))
-                print('Count Chunk ' + str(chunksizeNum))
-                chunksizeNum += chunksize
-            logging.info('Read sql to CSV Final')
-            print('Read sql to CSV Final')
-            #Start appending data from list to dataframe
-            # upload_csv(os.path.join(path, "dfTest.csv"))
+        #     # for chunk in pd.read_sql_query(sql="SELECT * FROM [Parts].[dbo].[wholesale]", con=conn, chunksize=chunksize):
+        #     #     # Start Appending Data Chunks from SQL Result set into List
+        #     #     chunk.to_csv(os.path.join(path,'dfTest.csv'), mode='a', index=False, header=None)
+        #     #     # logging.info('Count Chunk ' + str(chunksizeNum))
+        #     #     print('Count Chunk ' + str(chunksizeNum))
+        #     #     chunksizeNum += chunksize
+        #     # logging.info('Read sql to CSV Final')
+        #     # print('Read sql to CSV Final')
+        #     # #Start appending data from list to dataframe
+        #     # # upload_csv(os.path.join(path, "dfTest.csv"))
 
-            # dfTest = pd.read_csv(os.path.join(path,'dfTest.csv'), chunksize=chunksize)
-            dl=[]
-            for chunk in pd.read_csv(os.path.join(path,'dfTest.csv'), chunksize=chunksize, low_memory=False):
-                dl.append(chunk)
-            dfTest = pd.concat(dl)
-            logging.info('Read CSV to Dataframe')
+        #     # # dfTest = pd.read_csv(os.path.join(path,'dfTest.csv'), chunksize=chunksize)
+        #     # dl=[]
+        #     # for chunk in pd.read_csv(os.path.join(path,'dfTest.csv'), chunksize=chunksize, low_memory=False):
+        #     #     dl.append(chunk)
+        #     # dfTest = pd.concat(dl)
+        #     # logging.info('Read CSV to Dataframe')
 
-            col_name = ['SaleOrder','Orderitem','custpo','OrderDate','ReqDate','Del1stDate','PricingDate','SOType','itemcat','SOrg','DistCh','division','sloc','plant','soldto','shipto','payer','PartNo','qty','idreason','reason_desc','unit','listprice','total_listprice','netvalue','total_netvalue','Currency']
-            dfTest.columns = col_name
+        #     # col_name = ['SaleOrder','Orderitem','custpo','OrderDate','ReqDate','Del1stDate','PricingDate','SOType','itemcat','SOrg','DistCh','division','sloc','plant','soldto','shipto','payer','PartNo','qty','idreason','reason_desc','unit','listprice','total_listprice','netvalue','total_netvalue','Currency']
+        #     # dfTest.columns = col_name
 
             dfTest['SaleOrder'] = dfTest['SaleOrder'].astype(int)
             dfTest['Orderitem'] = dfTest['Orderitem'].astype(int)
@@ -207,7 +238,6 @@ def run():
             dfPrep['Currency'] = dfPrep['Currency'].str.strip('\r')
             dfPrep = dfPrep[dfPrep.columns[:-1]]
             print(dfPrep)
-            exit()
 
             df = pd.read_csv(os.path.join(path,'ws_data.csv'))
             col_name = ['SaleOrder','Orderitem','custpo','OrderDate','ReqDate','Del1stDate','PricingDate','SOType','itemcat','SOrg','DistCh','division','sloc','plant','soldto','shipto','payer','PartNo','qty','idreason','reason_desc','unit','listprice','total_listprice','netvalue','total_netvalue','Currency','Changed date (SO item)']
@@ -236,12 +266,15 @@ def run():
             logging.info('Finished Merge Dataframe')
             
             result.to_csv(os.path.join(path,'ws_data_final.csv'), index=False, header=None)
-            mydb = connect_db('skcdwhprdmi.siamkubota.co.th', 'Parts', 'skcadminuser', 'DEE@skcdwhtocloud2022prd')
-            cursor = mydb.cursor()
+            
             qry = 'TRUNCATE TABLE [Parts].[dbo].[wholesale]'
-            cursor.execute(qry)
-            cursor.commit()
+            conn.execute(sa_text(qry))
+            trans.commit()
+            trans.close()
+
             logging.info('TRUNCATE Complete')
             upload_csv(os.path.join(path, "ws_data_final.csv"))
             flag = bulkinsert.c_bulk_insert('ws_data_final.csv', 'skcdwhprdmi.siamkubota.co.th', 'Parts', 'skcadminuser', 'DEE@skcdwhtocloud2022prd', 'wholesale')
             stamp_log('wholesales',flag)
+
+run()
