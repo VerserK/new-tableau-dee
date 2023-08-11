@@ -167,7 +167,7 @@ def run():
                 # Start Appending Data Chunks from SQL Result set into List
                 chunk.to_csv(os.path.join(path,'dfTest.csv'), mode='a', index=False, header=None)
                 logging.info('Count Chunk ' + str(chunksizeNum))
-                print('Count Chunk ' + str(chunksizeNum))
+                # print('Count Chunk ' + str(chunksizeNum))
                 chunksizeNum += chunksize
             logging.info('Read sql to CSV Final')
             print('Read sql to CSV Final')
