@@ -15,6 +15,9 @@ from google.oauth2.credentials import Credentials
 import logging
 import tempfile
 import pickle
+import sqlalchemy as sa
+from sqlalchemy.sql import text as sa_text
+import urllib
 
 #SetUp Define AzureBlob
 sas_token = "sp=racwdli&st=2023-08-03T01:30:28Z&se=2030-08-03T09:30:28Z&spr=https&sv=2022-11-02&sr=c&sig=C8fvjhxkPCyHiThiNYlkfhz1w%2FVdizP7P1EOYBEEOBY%3D"
@@ -23,12 +26,16 @@ container = "test"
 blob_service_client = BlobServiceClient(account_url=account_url, credential=sas_token)
 container_client = blob_service_client.get_container_client(container=container)
 
-#Connect DWH
-def connect_db(sql_server_nm, db_nm, username, password):
-        # Connect to the server and database with Windows authentication.
-        conn_string = 'DRIVER={ODBC Driver 17 for SQL Server};SERVER=' + sql_server_nm + ';DATABASE=' + db_nm + ';UID='+ username +';PWD='+ password
-        conn = pyodbc.connect(conn_string)
-        return conn
+# Connect to the server and database with Windows authentication.
+sql_server_nm = 'skcdwhprdmi.siamkubota.co.th'
+db_nm = 'Parts'
+username = 'skcadminuser'
+password = 'DEE@skcdwhtocloud2022prd'
+conn_string = 'DRIVER={ODBC Driver 17 for SQL Server};SERVER=' + sql_server_nm + ';DATABASE=' + db_nm + ';UID='+ username +';PWD='+ password
+
+params = urllib.parse.quote_plus(conn_string)
+engine = sa.create_engine('mssql+pyodbc:///?odbc_connect=%s' % params)
+conn = engine.connect()
 
 def upload_csv(local_file_name):
     target_file_name = os.path.basename(local_file_name)
@@ -125,11 +132,13 @@ def run():
             df['PricingDate'] = pd.to_datetime(df['PricingDate'],format='%d.%m.%Y')
             df['Changed date (SO item)'] = pd.to_datetime(df['Changed date (SO item)'], errors='coerce',format='%d.%m.%Y')
             logging.info('Datetime Start')
-            cursor = connect_db('skcdwhprdmi.siamkubota.co.th', 'Parts', 'skcadminuser', 'DEE@skcdwhtocloud2022prd').cursor()
-            qry = 'DELETE FROM [Parts].[dbo].[wholesale] WHERE OrderDate >= ? '
-            df = df['OrderDate'].drop_duplicates()
-            cursor.execute(qry,df.min())
-            cursor.commit()
+            # cursor = conn.cursor()
+            df = df['OrderDate'].drop_duplicates().astype(str)
+            dfmin = df.min()
+            print(dfmin)
+            qry = "DELETE FROM [Parts].[dbo].[wholesale] WHERE OrderDate >= '" + dfmin + "'"
+            conn.execute(sa_text(qry))
+
             logging.info('Datetime End:')
             print('Datetime End:')
 
@@ -163,11 +172,11 @@ def run():
                 logging.info('Delete File dfTest.csv')
                 os.remove(os.path.join(path,'dfTest.csv'))
 
-            for chunk in pd.read_sql_query(sql="SELECT * FROM [Parts].[dbo].[wholesale]", con=connect_db('skcdwhprdmi.siamkubota.co.th', 'Parts', 'skcadminuser', 'DEE@skcdwhtocloud2022prd'), chunksize=chunksize):
+            for chunk in pd.read_sql_query(sql="SELECT * FROM [Parts].[dbo].[wholesale]", con=conn, chunksize=chunksize):
                 # Start Appending Data Chunks from SQL Result set into List
                 chunk.to_csv(os.path.join(path,'dfTest.csv'), mode='a', index=False, header=None)
-                logging.info('Count Chunk ' + str(chunksizeNum))
-                # print('Count Chunk ' + str(chunksizeNum))
+                # logging.info('Count Chunk ' + str(chunksizeNum))
+                print('Count Chunk ' + str(chunksizeNum))
                 chunksizeNum += chunksize
             logging.info('Read sql to CSV Final')
             print('Read sql to CSV Final')
@@ -236,3 +245,4 @@ def run():
             upload_csv(os.path.join(path, "ws_data_final.csv"))
             flag = bulkinsert.c_bulk_insert('ws_data_final.csv', 'skcdwhprdmi.siamkubota.co.th', 'Parts', 'skcadminuser', 'DEE@skcdwhtocloud2022prd', 'wholesale')
             stamp_log('wholesales',flag)
+run()
