@@ -276,5 +276,3 @@ def run():
             upload_csv(os.path.join(path, "ws_data_final.csv"))
             flag = bulkinsert.c_bulk_insert('ws_data_final.csv', 'skcdwhprdmi.siamkubota.co.th', 'Parts', 'skcadminuser', 'DEE@skcdwhtocloud2022prd', 'wholesale')
             stamp_log('wholesales',flag)
-
-run()
