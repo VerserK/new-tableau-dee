@@ -25,7 +25,7 @@ def run():
     blob_service_client = BlobServiceClient.from_connection_string('DefaultEndpointsProtocol=https;AccountName=d710rgsi01diag;AccountKey=nr/2Yn9nN9bWr0GNNSiNvBbN91MfYpkcIK0+9xcrYMdrFttcEAqV4kBBGGd8ehk+BRZ0gfe0iOTeoYVlRNbXOw==;EndpointSuffix=core.windows.net')
 
     # Create a unique name for the container
-    container_name = 'methee-google-file'
+    container_name = 'google-file'
 
     # Create a blob client using the local file name as the name for the blob
     blob_client = blob_service_client.get_blob_client(container=container_name, blob='sheet-token.pickle')
