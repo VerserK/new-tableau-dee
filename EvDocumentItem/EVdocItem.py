@@ -55,6 +55,7 @@ def run():
 
     df['RequireComment'] = df['RequireComment'].fillna(199)
     df['RequireComment'] = df['RequireComment'].replace(False,0)
+    df['RequireComment'] = df['RequireComment'].replace(True,1)
     df['RequireComment'] = df['RequireComment'].replace(199, None)
 
     delete = 'TRUNCATE TABLE [E_Procurement].[dbo].[' + table + ']'
