@@ -54,6 +54,7 @@ def run():
         logging.info(countRows)
         tmp.append(chunk)
     df = pd.concat(tmp)
+    
     logging.info('Read Data to Dataframe')
 
     df['GRMessageIndicator'] = df['GRMessageIndicator'].replace(True,1)

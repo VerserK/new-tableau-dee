@@ -4,5 +4,21 @@
     "azureFunctions.pythonVenv": ".venv",
     "azureFunctions.projectLanguage": "Python",
     "azureFunctions.projectRuntime": "~4",
-    "debug.internalConsoleOptions": "neverOpen"
+    "debug.internalConsoleOptions": "neverOpen",
+    "files.exclude": {
+        "**/.git": true,
+        "**/.svn": true,
+        "**/.hg": true,
+        "**/CVS": true,
+        "**/.DS_Store": true,
+        "**/Thumbs.db": true,
+        "**/.apivcs": true,
+        "**/.gitignore": true,
+        "**/.designer.json": true,
+        "**/.exchange.xml": true,
+        "**/.vscode": true,
+        "**/.mvn": true,
+        "**/.exchange_modules_tmp": true,
+        ".mule": true
+    }
 }
