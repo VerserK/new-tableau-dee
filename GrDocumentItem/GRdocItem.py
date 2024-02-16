@@ -68,7 +68,8 @@ def run():
       ,[CreatedProgram]
       ,[UpdatedBy]
       ,[UpdatedDate]
-      ,[UpdatedProgram] FROM [172.29.196.79].[SKCeProcurement].[dbo].''' + table
+      ,[UpdatedProgram]
+      ,[RowVersion] FROM [172.29.196.79].[SKCeProcurement].[dbo].''' + table
     countRows = 0
     for chunk in pd.read_sql_query(qry, con=engine,chunksize=10000):
         countRows += 1
