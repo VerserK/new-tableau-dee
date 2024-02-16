@@ -44,7 +44,31 @@ def run():
     tempFilePath = tempfile.gettempdir()
     nameFile = table + '.csv'
     tmp = []
-    qry = 'SELECT * FROM [172.29.196.79].[SKCeProcurement].[dbo].' + table
+    qry = '''SELECT [Id]
+      ,[PONo]
+      ,[POItemNo]
+      ,[POItemId]
+      ,[Material]
+      ,[MaterialItem]
+      ,[Year]
+      ,[MovementType]
+      ,[GRQuantity]
+      ,[GRUnit]
+      ,[PostingDate]
+      ,[DocumentDate]
+      ,[DeliveryCompleted]
+      ,[EnteredDate]
+      ,[IsCancel]
+      ,[RefMaterial]
+      ,[RefMaterialItem]
+      ,[CancelMaterial]
+      ,[CancelMaterialItem]
+      ,[CreatedBy]
+      ,[CreatedDate]
+      ,[CreatedProgram]
+      ,[UpdatedBy]
+      ,[UpdatedDate]
+      ,[UpdatedProgram] FROM [172.29.196.79].[SKCeProcurement].[dbo].''' + table
     countRows = 0
     for chunk in pd.read_sql_query(qry, con=engine,chunksize=10000):
         countRows += 1
